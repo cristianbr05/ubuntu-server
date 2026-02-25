@@ -1,158 +1,158 @@
-# AWS Academy: Servidor Ubuntu Samba + Cliente Windows (Guía Completa)
+# AWS Academy: Ubuntu Samba Server + Windows Client (Complete Guide)
 
-**Objetivo:** Desplegar servidor Ubuntu con Samba AD DC y cliente Windows Server en AWS EC2 con conectividad completa y acceso RDP desde Linux.
+**Objective:** Deploy Ubuntu server with Samba AD DC and Windows Server client on AWS EC2 with full connectivity and RDP access from Linux.
 
 ---
 
-## 📋 ARQUITECTURA FINAL
+## 📋 FINAL ARCHITECTURE
 
 ```
 ┌─────────────────────────────────────────────────────┐
 │              AWS EC2 - LAB VPC                      │
 │                                                     │
-│  ┌─────────────────────┐  ┌─────────────────────┐ │
-│  │  Ubuntu Server      │  │  Windows Server     │ │
-│  │  Samba AD DC        │  │  Cliente unido      │ │
-│  │                     │  │                     │ │
-│  │  IP Pública: X.X.X  │  │  IP Pública: Y.Y.Y  │ │
-│  │  IP Privada: 10.0.X │  │  IP Privada: 10.0.Y │ │
-│  │  Dominio: awslab.lan│  │                     │ │
-│  └─────────────────────┘  └─────────────────────┘ │
-│           ↕                         ↕              │
-│     Security Group LAB-SG                          │
+│  ┌─────────────────────┐  ┌─────────────────────┐   │
+│  │  Ubuntu Server      │  │  Windows Server     │   │
+│  │  Samba AD DC        │  │  Joined client      │   │
+│  │                     │  │                     │   │
+│  │  Public IP: X.X.X   │  │  Public IP: Y.Y.Y   │   │
+│  │  Private IP: 10.0.X │  │  Private IP: 10.0.Y │   │
+│  │  Domain: awslab.lan │  │                     │   │
+│  └─────────────────────┘  └─────────────────────┘   │
+│           ↕                         ↕               │
+│     Security Group LAB-SG                           │
 └─────────────────────────────────────────────────────┘
            ↕                         ↕
-    SSH desde Linux          RDP desde Linux
-      (puerto 22)             (puerto 3389)
+    SSH from Linux          RDP from Linux
+      (port 22)              (port 3389)
 ```
 
 ---
 
-## 🚀 PARTE 1: Preparar AWS Learner Lab
+## 🚀 PART 1: Set up AWS Learner Lab
 
-### Paso 1: Iniciar laboratorio
+### Step 1: Start the lab
 
 ```
-1. Entra a https://awsacademy.instructure.com/
-2. Inicia sesión con tu email de estudiante
-3. Clic en tu curso (AWS Academy Learner Lab)
-4. Menú izquierdo → "Modules" → "Learner Lab"
-5. Clic en "Start Lab" (botón verde)
-6. Espera 1-3 minutos hasta que el círculo esté 🟢 verde
-7. Clic en "AWS" (abre consola de AWS)
+1. Go to https://awsacademy.instructure.com/
+2. Log in with your student email
+3. Click on your course (AWS Academy Learner Lab)
+4. Left menu → "Modules" → "Learner Lab"
+5. Click "Start Lab" (green button)
+6. Wait 1-3 minutes until the circle is 🟢 green
+7. Click "AWS" (opens the AWS console)
 ```
 
 ---
 
-### Paso 2: Descargar par de claves SSH
+### Step 2: Download SSH key pair
 
 ```
-1. En la página del Learner Lab, clic en "AWS Details" (arriba)
-2. Clic en "Download PEM" (al lado de SSH Key)
-3. Se descarga "labsuser.pem" en Descargas
-4. Guardar en lugar seguro
+1. On the Learner Lab page, click "AWS Details" (above)
+2. Click "Download PEM" (next to SSH Key)
+3. "labsuser.pem" is downloaded to Downloads
+4. Save in a safe place
 ```
 
-**Preparar la clave en Linux:**
+**Prepare the key in Linux:**
 ```bash
-# Mover a ~/.ssh/
-mv ~/Descargas/labsuser.pem ~/.ssh/
+# Move to ~/.ssh/
+mv ~/Downloads/labsuser.pem ~/.ssh/
 
-# Dar permisos correctos
+# Set correct permissions
 chmod 400 ~/.ssh/labsuser.pem
 ```
 
 ---
 
-## 🔐 PARTE 2: Configurar Security Group
+## 🔐 PART 2: Configure Security Group
 
-### Paso 3: Crear Security Group compartido
+### Step 3: Create shared Security Group
 
-**En la consola de AWS:**
+**In the AWS console:**
 
 ```
-1. Buscar: "VPC"
-2. Clic en "VPC" (servicio)
-3. Menú izquierdo → "Security Groups"
-4. Clic en "Create security group"
+1. Search: "VPC"
+2. Click on "VPC" (service)
+3. Left menu → "Security Groups"
+4. Click on "Create security group"
 ```
 
-**Configuración:**
+**Configuration:**
 ```
 Name: LAB-SG
 Description: Security group for Samba AD DC and Windows client
-VPC: Seleccionar la VPC del lab (ejemplo: Lab VPC o vpc-XXXXXXX)
+VPC: Select the lab VPC (example: Lab VPC or vpc-XXXXXXX)
 ```
 
 ---
 
-### Paso 4: Añadir reglas de entrada (Inbound rules)
+### Step 4: Add inbound rules
 
-**Clic en "Add rule" para cada una:**
+**Click "Add rule" for each one:**
 
-| Tipo | Puerto | Protocolo | Origen | Descripción |
-|------|--------|-----------|--------|-------------|
-| SSH | 22 | TCP | 0.0.0.0/0 | SSH desde cualquier lugar |
-| RDP | 3389 | TCP | 0.0.0.0/0 | RDP desde cualquier lugar |
-| Custom TCP | 53 | TCP | 10.0.0.0/20 | DNS (TCP) interno |
-| Custom UDP | 53 | UDP | 10.0.0.0/20 | DNS (UDP) interno |
-| Custom TCP | 88 | TCP | 10.0.0.0/20 | Kerberos interno |
-| Custom UDP | 88 | UDP | 10.0.0.0/20 | Kerberos UDP interno |
-| Custom TCP | 389 | TCP | 10.0.0.0/20 | LDAP interno |
-| Custom TCP | 445 | TCP | 10.0.0.0/20 | SMB/CIFS interno |
-| Custom TCP | 636 | TCP | 10.0.0.0/20 | LDAPS interno |
-| Custom TCP | 3268 | TCP | 10.0.0.0/20 | Global Catalog interno |
+| Type | Port | Protocol | Source | Description |
+|------|------|----------|--------|-------------|
+| SSH | 22 | TCP | 0.0.0.0/0 | SSH from anywhere |
+| RDP | 3389 | TCP | 0.0.0.0/0 | RDP from anywhere |
+| Custom TCP | 53 | TCP | 10.0.0.0/20 | Internal DNS (TCP) |
+| Custom UDP | 53 | UDP | 10.0.0.0/20 | Internal DNS (UDP) |
+| Custom TCP | 88 | TCP | 10.0.0.0/20 | Internal Kerberos |
+| Custom UDP | 88 | UDP | 10.0.0.0/20 | Internal Kerberos UDP |
+| Custom TCP | 389 | TCP | 10.0.0.0/20 | Internal LDAP |
+| Custom TCP | 445 | TCP | 10.0.0.0/20 | Internal SMB/CIFS |
+| Custom TCP | 636 | TCP | 10.0.0.0/20 | Internal LDAPS |
+| Custom TCP | 3268 | TCP | 10.0.0.0/20 | Internal Global Catalog |
 | Custom TCP | 3269 | TCP | 10.0.0.0/20 | Global Catalog SSL |
-| All traffic | All | All | 10.0.0.0/20 | Comunicación interna VPC |
+| All traffic | All | All | 10.0.0.0/20 | Internal VPC communication |
 
-⚠️ **IMPORTANTE:** 
-- `10.0.0.0/20` es el rango de la VPC interna (ajustar según tu VPC)
-- SSH y RDP desde `0.0.0.0/0` para acceso desde tu casa
-- Puertos AD solo accesibles internamente (seguridad)
+⚠️ **IMPORTANT:** 
+- `10.0.0.0/20` is the internal VPC range (adjust according to your VPC)
+- SSH and RDP from `0.0.0.0/0` for access from home
+- AD ports only accessible internally (security)
 
-**Clic en "Create security group"**
-
----
-
-## 🖥️ PARTE 3: Crear instancia Ubuntu Server
-
-### Paso 5: Lanzar instancia Ubuntu
-
-**En la consola de AWS:**
-
-```
-1. Buscar: "EC2"
-2. Clic en "EC2"
-3. Menú izquierdo → "Instances"
-4. Clic en "Launch instances"
-```
+**Click "Create security group"**
 
 ---
 
-### Paso 6: Configurar instancia Ubuntu
+## 🖥️ PART 3: Create Ubuntu Server instance
 
-| Campo | Valor |
+### Step 5: Launch Ubuntu instance
+
+**In the AWS console:**
+
+```
+1. Search: "EC2"
+2. Click on "EC2"
+3. Left menu → "Instances"
+4. Click on "Launch instances"
+```
+
+---
+
+### Step 6: Configure Ubuntu instance
+
+| Field | Value |
 |-------|-------|
-| **Nombre** | `ubuntu-samba-server` |
+| **Name** | `ubuntu-samba-server` |
 | **AMI** | Ubuntu Server 24.04 LTS |
-| **Tipo de instancia** | `t3.micro` (2 vCPU, 2 GiB RAM) |
-| **Par de claves** | `vockey` (o el que descargaste) |
+| **Instance type** | `t3.micro` (2 vCPU, 2 GiB RAM) |
+| **Key pair** | `vockey` (or the one you downloaded) |
 
 ---
 
-**Configuración de red:**
+**Network configuration:**
 
 ```
-1. En "Network settings", clic en "Edit"
+1. In "Network settings", click "Edit"
 
-2. VPC: Seleccionar la VPC del lab (Lab VPC)
+2. VPC: Select the lab VPC (Lab VPC)
 
-3. Subnet: Cualquier subnet pública (ejemplo: subnet-public1)
+3. Subnet: Any public subnet (example: subnet-public1)
 
 4. Auto-assign public IP: ✅ Enable
 
 5. Security group: Select existing security group
-   - Seleccionar: LAB-SG (el que creamos antes)
+   - Select: LAB-SG (the one we created earlier)
 ```
 
 ---
@@ -168,83 +168,83 @@ Type: gp3
 IAM instance profile: LabInstanceProfile
 ```
 
-**Clic en "Launch instance"**
+**Click "Launch instance"**
 
 ---
 
-### Paso 7: Asignar Elastic IP al servidor Ubuntu
+### Step 7: Assign Elastic IP to Ubuntu server
 
-⚠️ **¿Por qué Elastic IP?** Las IPs públicas normales cambian al reiniciar la instancia. Las Elastic IPs son fijas.
+⚠️ **Why Elastic IP?** Normal public IPs change when the instance is restarted. Elastic IPs are fixed.
 
 ```
-1. EC2 → Menú izquierdo → "Elastic IPs"
-2. Clic en "Allocate Elastic IP address"
-3. Clic en "Allocate"
-4. Seleccionar la Elastic IP recién creada
+1. EC2 → Left menu → "Elastic IPs"
+2. Click "Allocate Elastic IP address"
+3. Click "Allocate"
+4. Select the newly created Elastic IP
 5. Actions → Associate Elastic IP address
-6. Instance: Seleccionar "ubuntu-samba-server"
-7. Private IP: Dejar la que aparece
-8. Clic en "Associate"
+6. Instance: Select "ubuntu-samba-server"
+7. Private IP: Leave the one that appears
+8. Click "Associate"
 ```
 
-📝 **Anotar:**
+📝 **Note down:**
 ```
-Elastic IP del servidor Ubuntu: ___.___.___.___ (ejemplo: 54.173.102.89)
+Elastic IP of Ubuntu server: ___.___.___.___ (example: 54.173.102.89)
 ```
 
 ---
 
-### Paso 8: Obtener IP privada del servidor
+### Step 8: Get the server's private IP
 
 ```
 1. EC2 → Instances
-2. Seleccionar "ubuntu-samba-server"
-3. Panel inferior "Details" → Anotar:
-   - Private IPv4 addresses (ejemplo: 10.0.1.226)
+2. Select "ubuntu-samba-server"
+3. Bottom panel "Details" → Note down:
+   - Private IPv4 addresses (example: 10.0.1.226)
 ```
 
-📝 **Anotar:**
+📝 **Note down:**
 ```
-IP privada del servidor Ubuntu: 10.0.___.___
+Private IP of Ubuntu server: 10.0.___.___
 ```
 
 ---
 
-## 💻 PARTE 4: Crear instancia Windows Server
+## 💻 PART 4: Create Windows Server instance
 
-### Paso 9: Lanzar instancia Windows
+### Step 9: Launch Windows instance
 
 ```
 1. EC2 → Instances → Launch instances
-2. Nombre: windows-client
+2. Name: windows-client
 ```
 
 ---
 
-### Paso 10: Configurar instancia Windows
+### Step 10: Configure Windows instance
 
-| Campo | Valor |
+| Field | Value |
 |-------|-------|
-| **Nombre** | `windows-client` |
+| **Name** | `windows-client` |
 | **AMI** | Microsoft Windows Server 2022 Base |
-| **Tipo de instancia** | `t3.micro` (2 vCPU, 2 GiB RAM) |
-| **Par de claves** | `vockey` (el mismo que Ubuntu) |
+| **Instance type** | `t3.micro` (2 vCPU, 2 GiB RAM) |
+| **Key pair** | `vockey` (same as Ubuntu) |
 
 ---
 
-**Configuración de red:**
+**Network configuration:**
 
 ```
-1. En "Network settings", clic en "Edit"
+1. In "Network settings", click "Edit"
 
-2. VPC: MISMA VPC que el servidor Ubuntu
+2. VPC: SAME VPC as the Ubuntu server
 
-3. Subnet: MISMA subnet que el servidor Ubuntu (o cualquier pública de la VPC)
+3. Subnet: SAME subnet as the Ubuntu server (or any public one in the VPC)
 
 4. Auto-assign public IP: ✅ Enable
 
 5. Security group: Select existing security group
-   - Seleccionar: LAB-SG (el mismo que Ubuntu)
+   - Select: LAB-SG (the same as Ubuntu)
 ```
 
 ---
@@ -260,86 +260,86 @@ Type: gp3
 IAM instance profile: LabInstanceProfile
 ```
 
-**Clic en "Launch instance"**
+**Click "Launch instance"**
 
 ---
 
-### Paso 11: Asignar Elastic IP a Windows
+### Step 11: Assign Elastic IP to Windows
 
 ```
 1. EC2 → Elastic IPs → Allocate Elastic IP address
 2. Allocate
-3. Seleccionar la nueva Elastic IP
+3. Select the new Elastic IP
 4. Actions → Associate Elastic IP address
-5. Instance: Seleccionar "windows-client"
-6. Clic en "Associate"
+5. Instance: Select "windows-client"
+6. Click "Associate"
 ```
 
-📝 **Anotar:**
+📝 **Note down:**
 ```
-Elastic IP del Windows: ___.___.___.___ (ejemplo: 54.221.100.222)
-```
-
----
-
-### Paso 12: Obtener IP privada de Windows
-
-```
-1. EC2 → Instances → Seleccionar "windows-client"
-2. Panel inferior → Anotar:
-   - Private IPv4 addresses (ejemplo: 10.0.14.107)
-```
-
-📝 **Anotar:**
-```
-IP privada del Windows: 10.0.___.___
+Elastic IP of Windows: ___.___.___.___ (example: 54.221.100.222)
 ```
 
 ---
 
-### Paso 13: Obtener contraseña de Administrator de Windows
-
-⚠️ **IMPORTANTE:** Espera 5-7 minutos después de lanzar la instancia antes de hacer esto.
+### Step 12: Get Windows private IP
 
 ```
-1. EC2 → Instances → Seleccionar "windows-client"
-2. Botón "Connect" (arriba)
-3. Pestaña "RDP client"
-4. Clic en "Get password"
-5. Clic en "Upload private key file"
-6. Seleccionar: labsuser.pem (de ~/.ssh/)
-7. Clic en "Decrypt password"
-8. Copiar la contraseña que aparece
+1. EC2 → Instances → Select "windows-client"
+2. Bottom panel → Note down:
+   - Private IPv4 addresses (example: 10.0.14.107)
 ```
 
-📝 **Anotar:**
+📝 **Note down:**
 ```
-Usuario Windows: Administrator
-Contraseña Windows: _________________ (ejemplo: xY9!mK2@pL5#qR8)
+Private IP of Windows: 10.0.___.___
 ```
 
 ---
 
-## 🔗 PARTE 5: Conectar por RDP desde Linux
+### Step 13: Get Windows Administrator password
 
-### Paso 14: Instalar FreeRDP en tu máquina Linux
+⚠️ **IMPORTANT:** Wait 5-7 minutes after launching the instance before doing this.
 
-**Desde tu Linux Mint local:**
+```
+1. EC2 → Instances → Select "windows-client"
+2. "Connect" button (above)
+3. "RDP client" tab
+4. Click "Get password"
+5. Click "Upload private key file"
+6. Select: labsuser.pem (from ~/.ssh/)
+7. Click "Decrypt password"
+8. Copy the password that appears
+```
+
+📝 **Note down:**
+```
+Windows user: Administrator
+Windows password: _________________ (example: xY9!mK2@pL5#qR8)
+```
+
+---
+
+## 🔗 PART 5: Connect via RDP from Linux
+
+### Step 14: Install FreeRDP on your Linux machine
+
+**From your local Linux Mint:**
 
 ```bash
-# Instalar FreeRDP
+# Install FreeRDP
 sudo apt update
 sudo apt install -y freerdp2-x11
 
-# Verificar instalación
+# Verify installation
 xfreerdp --version
 ```
 
 ---
 
-### Paso 15: Conectar por RDP al Windows Server
+### Step 15: Connect via RDP to Windows Server
 
-**Conectar con xfreerdp:**
+**Connect with xfreerdp:**
 
 ```bash
 xfreerdp /v:54.221.100.222 \
@@ -350,63 +350,63 @@ xfreerdp /v:54.221.100.222 \
          /clipboard
 ```
 
-**Cambiar:**
-- `54.221.100.222` → Tu Elastic IP de Windows
-- `xY9!mK2@pL5#qR8` → Tu contraseña de Windows
+**Change:**
+- `54.221.100.222` → Your Windows Elastic IP
+- `xY9!mK2@pL5#qR8` → Your Windows password
 
-**Explicación de parámetros:**
+**Parameter explanation:**
 ```
-/v:          → IP del servidor Windows
-/u:          → Usuario (Administrator)
-/p:          → Contraseña (entre comillas simples)
-/cert:ignore → Ignorar certificado SSL
-/dynamic-resolution → Ajustar resolución automáticamente
-/clipboard   → Compartir portapapeles
+/v:          → IP of the Windows server
+/u:          → User (Administrator)
+/p:          → Password (in single quotes)
+/cert:ignore → Ignore SSL certificate
+/dynamic-resolution → Automatically adjust resolution
+/clipboard   → Share clipboard
 ```
 
 ---
 
-### Paso 16: Primera configuración en Windows
+### Step 16: Initial configuration in Windows
 
-**Una vez dentro del RDP:**
+**Once inside RDP:**
 
-**1. Esperar configuración inicial (1-2 minutos)**
+**1. Wait for initial configuration (1-2 minutes)**
 
-**2. Cambiar contraseña a algo más simple:**
+**2. Change password to something simpler:**
 
-Abrir PowerShell (como Administrator):
+Open PowerShell (as Administrator):
 ```
-Clic derecho en Inicio → Windows PowerShell (Admin)
+Right-click on Start → Windows PowerShell (Admin)
 ```
 
-Ejecutar:
+Run:
 ```powershell
-# Cambiar contraseña a admin_21
+# Change password to admin_21
 net user Administrator admin_21
 ```
 
-**3. Configurar teclado español:**
+**3. Configure Spanish keyboard:**
 
 ```powershell
-# Configurar teclado español
+# Configure Spanish keyboard
 Set-WinUserLanguageList -LanguageList es-ES -Force
 ```
 
-**4. Permitir ICMP (ping) en el firewall:**
+**4. Allow ICMP (ping) in the firewall:**
 
 ```powershell
-# Permitir ping
+# Allow ping
 netsh advfirewall firewall add rule name="ICMP Allow" protocol=icmpv4:8,any dir=in action=allow
 ```
 
-**Reiniciar la sesión RDP:**
+**Restart the RDP session:**
 ```
-Inicio → Reiniciar
+Start → Restart
 ```
 
 ---
 
-### Paso 17: Reconectar por RDP con nueva contraseña
+### Step 17: Reconnect via RDP with new password
 
 ```bash
 xfreerdp /v:54.221.100.222 \
@@ -417,25 +417,25 @@ xfreerdp /v:54.221.100.222 \
          /clipboard
 ```
 
-✅ Ahora la contraseña es más simple: `admin_21`
+✅ Now the password is simpler: `admin_21`
 
 ---
 
-## 🔧 PARTE 6: Configurar servidor Ubuntu con Samba
+## 🔧 PART 6: Configure Ubuntu server with Samba
 
-### Paso 18: Conectar por SSH al servidor Ubuntu
+### Step 18: Connect via SSH to Ubuntu server
 
-**Desde tu Linux local:**
+**From your local Linux:**
 
 ```bash
 ssh -i ~/.ssh/labsuser.pem ubuntu@54.173.102.89
 ```
 
-**Cambiar `54.173.102.89` por tu Elastic IP de Ubuntu.**
+**Change `54.173.102.89` to your Ubuntu Elastic IP.**
 
 ---
 
-### Paso 19: Actualizar sistema
+### Step 19: Update system
 
 ```bash
 sudo apt update
@@ -444,7 +444,7 @@ sudo apt upgrade -y
 
 ---
 
-### Paso 20: Configurar hostname
+### Step 20: Configure hostname
 
 ```bash
 sudo hostnamectl set-hostname samba-server
@@ -452,60 +452,60 @@ sudo hostnamectl set-hostname samba-server
 
 ---
 
-### Paso 21: Configurar /etc/hosts
+### Step 21: Configure /etc/hosts
 
 ```bash
 sudo nano /etc/hosts
 ```
 
-**Contenido (cambiar 10.0.1.226 por tu IP privada):**
+**Content (change 10.0.1.226 to your private IP):**
 ```
 127.0.0.1       localhost
 127.0.1.1       samba-server.awslab.lan samba-server
 
-# IP privada de esta instancia
+# Private IP of this instance
 10.0.1.226      samba-server.awslab.lan samba-server
 ```
 
-**Guardar:** Ctrl+O, Enter, Ctrl+X
+**Save:** Ctrl+O, Enter, Ctrl+X
 
 ---
 
-### Paso 22: Deshabilitar systemd-resolved
+### Step 22: Disable systemd-resolved
 
-⚠️ **IMPORTANTE:** AWS usa DHCP y systemd-resolved interfiere con el DNS de Samba.
+⚠️ **IMPORTANT:** AWS uses DHCP and systemd-resolved interferes with Samba's DNS.
 
 ```bash
-# Deshabilitar systemd-resolved
+# Disable systemd-resolved
 sudo systemctl disable --now systemd-resolved
 
-# Eliminar enlace simbólico
+# Remove symbolic link
 sudo unlink /etc/resolv.conf
 ```
 
 ---
 
-### Paso 23: Crear /etc/resolv.conf manual
+### Step 23: Create manual /etc/resolv.conf
 
 ```bash
 sudo nano /etc/resolv.conf
 ```
 
-**Contenido:**
+**Content:**
 ```
 nameserver 127.0.0.1
 nameserver 8.8.8.8
 search awslab.lan
 ```
 
-**Guardar y hacer inmutable:**
+**Save and make immutable:**
 ```bash
 sudo chattr +i /etc/resolv.conf
 ```
 
 ---
 
-### Paso 24: Instalar Samba y dependencias
+### Step 24: Install Samba and dependencies
 
 ```bash
 sudo apt install -y acl attr samba samba-dsdb-modules samba-vfs-modules \
@@ -513,7 +513,7 @@ sudo apt install -y acl attr samba samba-dsdb-modules samba-vfs-modules \
   dnsutils ldap-utils
 ```
 
-**Configuración Kerberos:**
+**Kerberos configuration:**
 ```
 Default realm: AWSLAB.LAN
 Kerberos servers: samba-server.awslab.lan
@@ -522,64 +522,64 @@ Administrative server: samba-server.awslab.lan
 
 ---
 
-### Paso 25: Detener servicios Samba por defecto
+### Step 25: Stop default Samba services
 
 ```bash
 sudo systemctl stop smbd nmbd winbind
 sudo systemctl disable smbd nmbd winbind
 ```
 
-**Respaldar smb.conf:**
+**Back up smb.conf:**
 ```bash
 sudo mv /etc/samba/smb.conf /etc/samba/smb.conf.bak 2>/dev/null || true
 ```
 
 ---
 
-### Paso 26: Provision del dominio
+### Step 26: Domain provision
 
 ```bash
 sudo samba-tool domain provision --use-rfc2307 --interactive
 ```
 
-**Respuestas:**
+**Answers:**
 ```
-Realm: AWSLAB.LAN (presionar Enter)
-Domain: AWSLAB (presionar Enter)
-Server Role: dc (presionar Enter)
-DNS backend: SAMBA_INTERNAL (presionar Enter)
+Realm: AWSLAB.LAN (press Enter)
+Domain: AWSLAB (press Enter)
+Server Role: dc (press Enter)
+DNS backend: SAMBA_INTERNAL (press Enter)
 DNS forwarder: 8.8.8.8
 Administrator password: Admin_21
 Retype password: Admin_21
 ```
 
-**Debe decir:**
+**Should say:**
 ```
 Provision OK for domain DN DC=awslab,DC=lan
 ```
 
 ---
 
-### Paso 27: Copiar krb5.conf e iniciar Samba
+### Step 27: Copy krb5.conf and start Samba
 
 ```bash
-# Copiar configuración Kerberos
+# Copy Kerberos configuration
 sudo cp /var/lib/samba/private/krb5.conf /etc/krb5.conf
 
-# Iniciar Samba AD DC
+# Start Samba AD DC
 sudo systemctl unmask samba-ad-dc
 sudo systemctl start samba-ad-dc
 sudo systemctl enable samba-ad-dc
 
-# Verificar estado
+# Verify status
 sudo systemctl status samba-ad-dc
 ```
 
-Debe estar `active (running)`.
+Should be `active (running)`.
 
 ---
 
-### Paso 28: Verificar DNS y Kerberos
+### Step 28: Verify DNS and Kerberos
 
 ```bash
 # DNS
@@ -589,23 +589,23 @@ host -t SRV _ldap._tcp.awslab.lan
 
 # Kerberos
 kinit Administrator
-# Contraseña: Admin_21
+# Password: Admin_21
 klist
 ```
 
-✅ Todo debe funcionar correctamente.
+✅ Everything should work correctly.
 
 ---
 
-### Paso 29: Crear carpetas compartidas
+### Step 29: Create shared folders
 
 ```bash
-# Crear carpetas
+# Create folders
 sudo mkdir -p /srv/samba/FinanceDocs
 sudo mkdir -p /srv/samba/HRDocs
 sudo mkdir -p /srv/samba/Public
 
-# Permisos
+# Permissions
 sudo chmod 777 /srv/samba/FinanceDocs
 sudo chmod 777 /srv/samba/HRDocs
 sudo chmod 755 /srv/samba/Public
@@ -613,13 +613,13 @@ sudo chmod 755 /srv/samba/Public
 
 ---
 
-### Paso 30: Configurar recursos compartidos en smb.conf
+### Step 30: Configure shared resources in smb.conf
 
 ```bash
 sudo nano /etc/samba/smb.conf
 ```
 
-**Añadir al final:**
+**Add at the end:**
 ```ini
 [FinanceDocs]
     path = /srv/samba/FinanceDocs
@@ -641,140 +641,140 @@ sudo nano /etc/samba/smb.conf
     map acl inherit = yes
 ```
 
-**Guardar y recargar:**
+**Save and reload:**
 ```bash
 sudo smbcontrol all reload-config
 ```
 
 ---
 
-## 🌐 PARTE 7: Verificar conectividad
+## 🌐 PART 7: Verify connectivity
 
-### Paso 31: Desde Ubuntu, hacer ping a Windows
+### Step 31: From Ubuntu, ping Windows
 
 ```bash
-# Ping usando IP privada de Windows
+# Ping using Windows private IP
 ping -c 4 10.0.14.107
 ```
 
-**Cambiar `10.0.14.107` por tu IP privada de Windows.**
+**Change `10.0.14.107` to your Windows private IP.**
 
-✅ Debe responder correctamente.
+✅ Should respond correctly.
 
 ---
 
-### Paso 32: Desde Windows, hacer ping a Ubuntu
+### Step 32: From Windows, ping Ubuntu
 
-**Abrir PowerShell en Windows (RDP):**
+**Open PowerShell in Windows (RDP):**
 
 ```powershell
-# Ping usando IP privada de Ubuntu
+# Ping using Ubuntu private IP
 ping 10.0.1.226
 ```
 
-**Cambiar `10.0.1.226` por tu IP privada de Ubuntu.**
+**Change `10.0.1.226` to your Ubuntu private IP.**
 
-✅ Debe responder.
+✅ Should respond.
 
 ---
 
-### Paso 33: Probar puertos desde Windows
+### Step 33: Test ports from Windows
 
 ```powershell
-# Probar SSH (puerto 22)
+# Test SSH (port 22)
 Test-NetConnection -ComputerName 10.0.1.226 -Port 22
 
-# Probar LDAP (puerto 389)
+# Test LDAP (port 389)
 Test-NetConnection -ComputerName 10.0.1.226 -Port 389
 
-# Probar SMB (puerto 445)
+# Test SMB (port 445)
 Test-NetConnection -ComputerName 10.0.1.226 -Port 445
 ```
 
-✅ Todos deben mostrar `TcpTestSucceeded: True`
+✅ All should show `TcpTestSucceeded: True`
 
 ---
 
-## 🔐 PARTE 8: Unir Windows al dominio
+## 🔐 PART 8: Join Windows to the domain
 
-### Paso 34: Configurar DNS en Windows
+### Step 34: Configure DNS on Windows
 
-**En Windows (RDP), abrir PowerShell como Administrator:**
+**In Windows (RDP), open PowerShell as Administrator:**
 
 ```powershell
-# Obtener nombre de la interfaz de red
+# Get network interface name
 Get-NetAdapter
 ```
 
-**Debe mostrar algo como:**
+**Should show something like:**
 ```
 Name                      InterfaceDescription
 ----                      --------------------
 Ethernet                  AWS PV Network Device
 ```
 
-**Configurar DNS:**
+**Configure DNS:**
 ```powershell
-# Cambiar DNS a la IP privada del servidor Ubuntu
+# Change DNS to the Ubuntu server's private IP
 Set-DnsClientServerAddress -InterfaceAlias "Ethernet" -ServerAddresses ("10.0.1.226","8.8.8.8")
 
-# Verificar
+# Verify
 Get-DnsClientServerAddress -InterfaceAlias "Ethernet" -AddressFamily IPv4
 ```
 
-**Cambiar `10.0.1.226` por tu IP privada de Ubuntu.**
+**Change `10.0.1.226` to your Ubuntu private IP.**
 
 ---
 
-### Paso 35: Verificar resolución DNS desde Windows
+### Step 35: Verify DNS resolution from Windows
 
 ```powershell
-# Resolver el dominio
+# Resolve the domain
 nslookup awslab.lan
 
-# Resolver el servidor
+# Resolve the server
 nslookup samba-server.awslab.lan
 ```
 
-✅ Debe resolver correctamente.
+✅ Should resolve correctly.
 
 ---
 
-### Paso 36: Unir Windows al dominio
+### Step 36: Join Windows to the domain
 
-**Método 1: Desde PowerShell (más rápido):**
+**Method 1: From PowerShell (faster):**
 
 ```powershell
-# Unir al dominio
+# Join the domain
 Add-Computer -DomainName awslab.lan -Credential AWSLAB\Administrator -Restart
 ```
 
-**Introducir contraseña:** `Admin_21`
+**Enter password:** `Admin_21`
 
 ---
 
-**Método 2: Desde GUI:**
+**Method 2: From GUI:**
 
 ```
-1. Inicio → Buscar: "This PC"
-2. Clic derecho → Properties
-3. Clic en "Rename this PC (advanced)"
-4. Clic en "Change..."
-5. Seleccionar "Domain"
-6. Escribir: awslab.lan
+1. Start → Search: "This PC"
+2. Right-click → Properties
+3. Click on "Rename this PC (advanced)"
+4. Click on "Change..."
+5. Select "Domain"
+6. Type: awslab.lan
 7. OK
-8. Usuario: Administrator
-9. Contraseña: Admin_21
-10. OK → Reiniciar
+8. User: Administrator
+9. Password: Admin_21
+10. OK → Restart
 ```
 
-**El Windows se reiniciará.**
+**Windows will restart.**
 
 ---
 
-### Paso 37: Reconectar y verificar unión al dominio
+### Step 37: Reconnect and verify domain join
 
-**Reconectar por RDP:**
+**Reconnect via RDP:**
 
 ```bash
 xfreerdp /v:54.221.100.222 \
@@ -785,55 +785,55 @@ xfreerdp /v:54.221.100.222 \
          /clipboard
 ```
 
-**Verificar en PowerShell:**
+**Verify in PowerShell:**
 
 ```powershell
-# Ver información del equipo
+# View computer information
 systeminfo | findstr /B /C:"Domain"
 ```
 
-**Debe mostrar:**
+**Should show:**
 ```
 Domain: awslab.lan
 ```
 
-✅ Windows unido correctamente al dominio.
+✅ Windows correctly joined to the domain.
 
 ---
 
-## 📁 PARTE 9: Crear usuarios y probar acceso
+## 📁 PART 9: Create users and test access
 
-### Paso 38: Crear usuarios en el servidor Ubuntu
+### Step 38: Create users on the Ubuntu server
 
-**Volver al SSH del servidor Ubuntu:**
+**Return to the Ubuntu server SSH:**
 
 ```bash
-# Crear usuarios
+# Create users
 sudo samba-tool user create alice Admin_21 --given-name="Alice" --surname="Finance"
 sudo samba-tool user create bob Admin_21 --given-name="Bob" --surname="HR"
 
-# Crear grupos
+# Create groups
 sudo samba-tool group add Finance
 sudo samba-tool group add HR
 
-# Añadir usuarios a grupos
+# Add users to groups
 sudo samba-tool group addmembers Finance alice
 sudo samba-tool group addmembers HR bob
 
-# Verificar
+# Verify
 sudo samba-tool group listmembers Finance
 sudo samba-tool group listmembers HR
 ```
 
 ---
 
-### Paso 39: Configurar permisos en smb.conf
+### Step 39: Configure permissions in smb.conf
 
 ```bash
 sudo nano /etc/samba/smb.conf
 ```
 
-**Modificar las secciones:**
+**Modify the sections:**
 ```ini
 [FinanceDocs]
     path = /srv/samba/FinanceDocs
@@ -857,202 +857,202 @@ sudo nano /etc/samba/smb.conf
     map acl inherit = yes
 ```
 
-**Guardar y recargar:**
+**Save and reload:**
 ```bash
 sudo smbcontrol all reload-config
 ```
 
 ---
 
-### Paso 40: Iniciar sesión como usuario del dominio en Windows
+### Step 40: Log in as a domain user on Windows
 
-**En Windows (RDP):**
+**In Windows (RDP):**
 
 ```
-1. Cerrar sesión (Inicio → Icono usuario → Sign out)
-2. En la pantalla de login:
-   - Clic en "Other user"
-   - Usuario: AWSLAB\alice
-   - Contraseña: Admin_21
-3. Iniciar sesión
+1. Sign out (Start → User icon → Sign out)
+2. On the login screen:
+   - Click "Other user"
+   - User: AWSLAB\alice
+   - Password: Admin_21
+3. Log in
 ```
 
-**Primera vez tardará 1-2 minutos (crea perfil).**
+**The first time will take 1-2 minutes (creates profile).**
 
 ---
 
-### Paso 41: Acceder a recursos compartidos
+### Step 41: Access shared resources
 
-**Abrir Explorador de archivos (Windows + E):**
+**Open File Explorer (Windows + E):**
 
-**En la barra de direcciones, escribir:**
+**In the address bar, type:**
 ```
 \\samba-server.awslab.lan
 ```
 
-**O usando IP privada:**
+**Or using private IP:**
 ```
 \\10.0.1.226
 ```
 
-**Debe mostrar:**
+**Should show:**
 ```
 FinanceDocs
 Public
 ```
 
-⚠️ **HRDocs NO aparece** porque alice no está en el grupo HR.
+⚠️ **HRDocs does NOT appear** because alice is not in the HR group.
 
 ---
 
-### Paso 42: Probar accesos
+### Step 42: Test access
 
-**Abrir FinanceDocs:**
+**Open FinanceDocs:**
 ```
-1. Doble clic en FinanceDocs
-2. DEBE abrir correctamente
-3. Clic derecho → New → Text Document
-4. Nombrar: test_alice.txt
-5. Abrir y escribir algo
-6. Guardar
+1. Double-click on FinanceDocs
+2. MUST open correctly
+3. Right-click → New → Text Document
+4. Name it: test_alice.txt
+5. Open and write something
+6. Save
 ```
 
-✅ alice puede acceder a FinanceDocs.
+✅ alice can access FinanceDocs.
 
 ---
 
-**Intentar acceder a HRDocs:**
+**Try to access HRDocs:**
 ```
-Desde el Explorador, escribir en la barra:
+From Explorer, type in the address bar:
 \\samba-server.awslab.lan\HRDocs
 ```
 
-❌ **DEBE denegar acceso** (alice no está en HR).
+❌ **MUST deny access** (alice is not in HR).
 
 ---
 
-**Abrir Public:**
+**Open Public:**
 ```
 \\samba-server.awslab.lan\Public
 ```
 
-✅ DEBE abrir (Public es para todos).
+✅ MUST open (Public is for everyone).
 
 ---
 
-### Paso 43: Mapear unidad de red
+### Step 43: Map network drive
 
 ```
-1. Explorador de archivos → This PC
-2. Menú superior → Computer → Map network drive
+1. File Explorer → This PC
+2. Top menu → Computer → Map network drive
 3. Drive: Z:
 4. Folder: \\samba-server.awslab.lan\FinanceDocs
 5. ✅ Reconnect at sign-in
 6. Finish
 ```
 
-**La unidad Z: aparece en This PC.**
+**Drive Z: appears in This PC.**
 
 ---
 
-## ✅ CHECKPOINT FINAL
+## ✅ FINAL CHECKPOINT
 
-### Verificaciones en servidor Ubuntu:
+### Verifications on Ubuntu server:
 
 ```bash
-# 1. Samba corriendo
+# 1. Samba running
 sudo systemctl status samba-ad-dc | grep Active
 
-# 2. Usuarios creados
+# 2. Users created
 sudo samba-tool user list
 
-# 3. Grupos creados
+# 3. Groups created
 sudo samba-tool group list
 
-# 4. Miembros de Finance
+# 4. Finance members
 sudo samba-tool group listmembers Finance
 
-# 5. DNS funciona
+# 5. DNS works
 host awslab.lan
 
-# 6. Kerberos funciona
+# 6. Kerberos works
 klist
 ```
 
 ---
 
-### Verificaciones en Windows:
+### Verifications on Windows:
 
 ```powershell
-# 1. Unido al dominio
+# 1. Joined to the domain
 systeminfo | findstr /B /C:"Domain"
 
-# 2. Usuario actual
+# 2. Current user
 whoami
 
-# 3. Información del usuario
+# 3. User information
 net user alice /domain
 
-# 4. Resolución DNS
+# 4. DNS resolution
 nslookup samba-server.awslab.lan
 
-# 5. Conectividad
+# 5. Connectivity
 ping 10.0.1.226
 Test-NetConnection -ComputerName 10.0.1.226 -Port 445
 ```
 
 ---
 
-### Verificaciones de acceso:
+### Access verifications:
 
-| Usuario | FinanceDocs | HRDocs | Public |
-|---------|-------------|--------|--------|
-| alice | ✅ Acceso | ❌ Denegado | ✅ Acceso |
-| bob | ❌ Denegado | ✅ Acceso | ✅ Acceso |
-| Administrator | ✅ Acceso | ✅ Acceso | ✅ Acceso |
+| User | FinanceDocs | HRDocs | Public |
+|------|-------------|--------|--------|
+| alice | ✅ Access | ❌ Denied | ✅ Access |
+| bob | ❌ Denied | ✅ Access | ✅ Access |
+| Administrator | ✅ Access | ✅ Access | ✅ Access |
 
 ---
 
 ## 🛠️ TROUBLESHOOTING
 
-### No puedo conectar por RDP
+### Cannot connect via RDP
 
-**Verificar:**
+**Check:**
 ```bash
-# Security group tiene puerto 3389 abierto
-# Elastic IP es correcta
-# Contraseña copiada sin espacios extra
-# Instancia está "Running"
+# Security group has port 3389 open
+# Elastic IP is correct
+# Password copied without extra spaces
+# Instance is "Running"
 ```
 
-**Probar conexión:**
+**Test connection:**
 ```bash
-# Probar si el puerto está abierto
+# Test if the port is open
 telnet 54.221.100.222 3389
 
-# Si no tienes telnet:
+# If you don't have telnet:
 nc -zv 54.221.100.222 3389
 ```
 
 ---
 
-### Windows no puede unirse al dominio
+### Windows cannot join the domain
 
-**En Windows, verificar DNS:**
+**In Windows, verify DNS:**
 ```powershell
 Get-DnsClientServerAddress -InterfaceAlias "Ethernet" -AddressFamily IPv4
 ```
 
-Debe mostrar la IP privada de Ubuntu como DNS primario.
+Should show the Ubuntu private IP as primary DNS.
 
-**Verificar resolución:**
+**Verify resolution:**
 ```powershell
 nslookup awslab.lan
 ```
 
-Debe resolver a la IP privada de Ubuntu.
+Should resolve to the Ubuntu private IP.
 
-**En Ubuntu, verificar Samba:**
+**In Ubuntu, verify Samba:**
 ```bash
 sudo systemctl status samba-ad-dc
 host -t SRV _ldap._tcp.awslab.lan
@@ -1060,48 +1060,48 @@ host -t SRV _ldap._tcp.awslab.lan
 
 ---
 
-### No puedo acceder a carpetas compartidas
+### Cannot access shared folders
 
-**Verificar en Windows:**
+**Check in Windows:**
 ```powershell
-# Ping al servidor
+# Ping the server
 ping 10.0.1.226
 
-# Puerto SMB abierto
+# SMB port open
 Test-NetConnection -ComputerName 10.0.1.226 -Port 445
 
-# Listar recursos
+# List resources
 net view \\10.0.1.226
 ```
 
-**Verificar en Ubuntu:**
+**Check in Ubuntu:**
 ```bash
-# Recursos compartidos configurados
+# Shared resources configured
 sudo smbclient -L localhost -U Administrator%Admin_21
 
-# Permisos de carpetas
+# Folder permissions
 ls -la /srv/samba/
 
-# Configuración smb.conf
+# smb.conf configuration
 sudo grep -A 5 "\[FinanceDocs\]" /etc/samba/smb.conf
 ```
 
 ---
 
-### FreeRDP no conecta
+### FreeRDP doesn't connect
 
-**Instalar versión actualizada:**
+**Install updated version:**
 ```bash
 sudo apt update
 sudo apt install -y freerdp2-x11 freerdp2-shadow-x11
 ```
 
-**Probar con parámetros mínimos:**
+**Test with minimum parameters:**
 ```bash
 xfreerdp /v:54.221.100.222 /u:Administrator /p:'admin_21' /cert:ignore
 ```
 
-**Si sigue fallando, usar Remmina:**
+**If it still fails, use Remmina:**
 ```bash
 sudo apt install -y remmina remmina-plugin-rdp
 remmina
@@ -1109,59 +1109,59 @@ remmina
 
 ---
 
-### Las IPs cambiaron al reiniciar
+### IPs changed after restart
 
-**Elastic IPs NO cambian.** Si cambiaron, no son Elastic IPs.
+**Elastic IPs do NOT change.** If they changed, they are not Elastic IPs.
 
-**Verificar:**
+**Check:**
 ```
-EC2 → Elastic IPs → Debe haber 2 IPs asociadas
+EC2 → Elastic IPs → There should be 2 associated IPs
 ```
 
-**Las IPs privadas (10.0.X.X) SÍ persisten aunque pares/inicies la instancia.**
+**Private IPs (10.0.X.X) DO persist even when you stop/start the instance.**
 
 ---
 
-## 💰 COSTOS Y LÍMITES
+## 💰 COSTS AND LIMITS
 
-**Créditos disponibles:** $50-100
+**Available credits:** $50-100
 
-**Consumo aproximado:**
+**Approximate consumption:**
 ```
-t3.micro Ubuntu:  ~$0.02/hora
-t3.micro Windows: ~$0.02/hora
-Elastic IPs:      $0 (mientras estén asociadas a instancias running)
+t3.micro Ubuntu:  ~$0.02/hour
+t3.micro Windows: ~$0.02/hour
+Elastic IPs:      $0 (while associated with running instances)
 
-Total: ~$0.04/hora = ~$0.96 por 24 horas
+Total: ~$0.04/hour = ~$0.96 per 24 hours
 ```
 
-**Consejos:**
+**Tips:**
 ```
-1. PARAR (Stop) las instancias cuando no las uses
-2. NO terminar (Terminate) si quieres conservarlas
-3. Elastic IPs asociadas a instancias paradas SÍ cuestan dinero
-4. El lab se apaga automáticamente (varía según curso)
+1. STOP (Stop) instances when not in use
+2. Do NOT terminate (Terminate) if you want to keep them
+3. Elastic IPs associated with stopped instances DO cost money
+4. The lab shuts down automatically (varies by course)
 ```
 
 ---
 
-## 🎯 RESUMEN FINAL
+## 🎯 FINAL SUMMARY
 
-**Has completado:**
-- ✅ Security Group configurado con todos los puertos AD
-- ✅ Servidor Ubuntu con Samba AD DC en AWS
-- ✅ Windows Server en AWS
-- ✅ Elastic IPs persistentes en ambas instancias
-- ✅ Conexión RDP desde Linux con FreeRDP
-- ✅ Teclado español y contraseña simple en Windows
-- ✅ Conectividad bidireccional verificada (ping, puertos)
-- ✅ Windows unido al dominio awslab.lan
-- ✅ Usuarios y grupos creados
-- ✅ Carpetas compartidas con permisos por grupos
-- ✅ Acceso verificado (alice → FinanceDocs ✅, HRDocs ❌)
-- ✅ Unidades de red mapeadas
+**You have completed:**
+- ✅ Security Group configured with all AD ports
+- ✅ Ubuntu server with Samba AD DC on AWS
+- ✅ Windows Server on AWS
+- ✅ Persistent Elastic IPs on both instances
+- ✅ RDP connection from Linux with FreeRDP
+- ✅ Spanish keyboard and simple password on Windows
+- ✅ Bidirectional connectivity verified (ping, ports)
+- ✅ Windows joined to the awslab.lan domain
+- ✅ Users and groups created
+- ✅ Shared folders with group permissions
+- ✅ Access verified (alice → FinanceDocs ✅, HRDocs ❌)
+- ✅ Network drives mapped
 
-**Arquitectura final:**
+**Final architecture:**
 ```
 Internet
     ↓
@@ -1170,15 +1170,15 @@ Internet
 │   Security Group: LAB-SG              │
 │                                       │
 │  Ubuntu Server          Windows       │
-│  ┌─────────────────┐   ┌──────────┐  │
-│  │ Samba AD DC     │   │ Cliente  │  │
-│  │ awslab.lan      │←──│ RDP      │  │
-│  │ 10.0.1.226      │   │ 10.0.14. │  │
-│  └─────────────────┘   └──────────┘  │
+│  ┌─────────────────┐   ┌──────────┐   │
+│  │ Samba AD DC     │   │ Client   │   │
+│  │ awslab.lan      │←──│ RDP      │   │
+│  │ 10.0.1.226      │   │ 10.0.14. │   │
+│  └─────────────────┘   └──────────┘   │
 │    Elastic IP            Elastic IP   │
 └───────────────────────────────────────┘
       ↑                      ↑
     SSH (22)             RDP (3389)
-   desde Linux         desde Linux
+   from Linux          from Linux
                       (FreeRDP)
 ```
