@@ -1,38 +1,38 @@
-# GESTIÓN DE DISCOS EN LINUX — Guía Completa para Examen
+# DISK MANAGEMENT IN LINUX — Complete Exam Guide
 
-**Herramientas principales:** `fdisk` · `parted` · `mkfs` · `mount` · `lsblk` · `df` · `du`
-
----
-
-## 📋 ÍNDICE
-
-1. [Ver información de discos](#parte-1)
-2. [Añadir un segundo disco (VirtualBox/AWS)](#parte-2)
-3. [Particionar con fdisk](#parte-3)
-4. [Formatear particiones](#parte-4)
-5. [Montar particiones](#parte-5)
-6. [Montaje permanente (/etc/fstab)](#parte-6)
-7. [Redimensionar particiones](#parte-7)
-8. [Cambiar tipo de partición](#parte-8)
-9. [Eliminar particiones](#parte-9)
-10. [Particiones SWAP](#parte-10)
-11. [Permisos y propietarios](#parte-11)
-12. [Troubleshooting](#parte-12)
-13. [Cheatsheet rápido](#cheatsheet)
-14. [Escenarios típicos de examen](#escenarios)
+**Main tools:** `fdisk` · `parted` · `mkfs` · `mount` · `lsblk` · `df` · `du`
 
 ---
 
-<a name="parte-1"></a>
-## 📊 PARTE 1: Ver información de discos
+## 📋 TABLE OF CONTENTS
 
-### lsblk — ver todos los discos y particiones
+1. [View disk information](#part-1)
+2. [Add a second disk (VirtualBox/AWS)](#part-2)
+3. [Partition with fdisk](#part-3)
+4. [Format partitions](#part-4)
+5. [Mount partitions](#part-5)
+6. [Permanent mount (/etc/fstab)](#part-6)
+7. [Resize partitions](#part-7)
+8. [Change partition type](#part-8)
+9. [Delete partitions](#part-9)
+10. [SWAP partitions](#part-10)
+11. [Permissions and owners](#part-11)
+12. [Troubleshooting](#part-12)
+13. [Quick cheatsheet](#cheatsheet)
+14. [Typical exam scenarios](#scenarios)
+
+---
+
+<a name="part-1"></a>
+## 📊 PART 1: View disk information
+
+### lsblk — view all disks and partitions
 
 ```bash
 lsblk
 ```
 
-Salida típica:
+Typical output:
 ```
 NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
 sda      8:0    0   20G  0 disk
@@ -42,15 +42,15 @@ sda      8:0    0   20G  0 disk
 sdb      8:16   0   10G  0 disk
 ```
 
-- `sda` = Primer disco (principal) · `sdb` = Segundo disco (sin particionar)
-- `sda1` = Primera partición de sda · `MOUNTPOINT` = Dónde está montado
+- `sda` = First disk (main) · `sdb` = Second disk (unpartitioned)
+- `sda1` = First partition of sda · `MOUNTPOINT` = Where it is mounted
 
-Ver con información de filesystems:
+View with filesystem information:
 ```bash
 lsblk -f
 ```
 
-### fdisk -l — lista detallada de particiones
+### fdisk -l — detailed partition listing
 
 ```bash
 sudo fdisk -l
@@ -58,29 +58,29 @@ sudo fdisk -l /dev/sda
 sudo fdisk -l /dev/sdb
 ```
 
-### df — espacio usado y disponible en particiones montadas
+### df — used and available space on mounted partitions
 
-→ `-h` = Human readable · `-T` = mostrar tipo de filesystem
+→ `-h` = Human readable · `-T` = show filesystem type
 ```bash
 df -h
 df -hT
 ```
 
-### du — espacio ocupado por carpetas
+### du — space used by folders
 
 ```bash
-du -sh /srv/samba          # Total de la carpeta
-du -h /srv/samba           # Desglose por subcarpetas
-du -h /srv | sort -h       # Ordenado por tamaño
+du -sh /srv/samba          # Total of the folder
+du -h /srv/samba           # Breakdown by subfolders
+du -h /srv | sort -h       # Sorted by size
 ```
 
-### blkid — ver UUIDs de todas las particiones
+### blkid — view UUIDs of all partitions
 
 ```bash
 sudo blkid
 ```
 
-Salida:
+Output:
 ```
 /dev/sda1: UUID="a1b2c3d4-e5f6-7890-abcd-ef1234567890" TYPE="ext4"
 /dev/sda5: UUID="12345678-90ab-cdef-1234-567890abcdef" TYPE="swap"
@@ -89,56 +89,56 @@ Salida:
 
 ---
 
-<a name="parte-2"></a>
-## 💾 PARTE 2: Añadir un segundo disco
+<a name="part-2"></a>
+## 💾 PART 2: Add a second disk
 
-### Opción A: VirtualBox (VM apagada)
+### Option A: VirtualBox (VM powered off)
 
-1. Clic derecho en la VM → Configuración → Almacenamiento
-2. Controlador SATA → icono "+" → Crear → VDI → Reservado dinámicamente
-3. Tamaño: 10 GB · Nombre: `segundo_disco.vdi` → Crear → Aceptar
+1. Right-click on the VM → Settings → Storage
+2. SATA Controller → "+" icon → Create → VDI → Dynamically allocated
+3. Size: 10 GB · Name: `second_disk.vdi` → Create → Accept
 
-→ Debe aparecer `/dev/sdb` (nuevo disco de 10 GB)
+→ `/dev/sdb` should appear (new 10 GB disk)
 ```bash
 lsblk
 ```
 
-### Opción B: AWS EC2 (instancia en ejecución)
+### Option B: AWS EC2 (running instance)
 
 1. EC2 → Volumes → Create Volume → Size: 10 GiB
-2. Availability Zone: **la misma que tu instancia** → Create Volume
-3. Seleccionar volumen → Actions → Attach Volume → seleccionar instancia
-4. Device name: `/dev/sdf` (AWS lo cambia a `/dev/xvdf` automáticamente)
+2. Availability Zone: **the same as your instance** → Create Volume
+3. Select volume → Actions → Attach Volume → select instance
+4. Device name: `/dev/sdf` (AWS changes it to `/dev/xvdf` automatically)
 
-→ Debe aparecer `/dev/xvdf` o `/dev/nvme1n1` (instancias modernas)
+→ `/dev/xvdf` or `/dev/nvme1n1` should appear (modern instances)
 ```bash
 lsblk
 ```
 
 ---
 
-<a name="parte-3"></a>
-## 🔧 PARTE 3: Particionar con fdisk
+<a name="part-3"></a>
+## 🔧 PART 3: Partition with fdisk
 
-### Referencia de comandos dentro de fdisk
+### Reference of commands inside fdisk
 
-| Tecla | Acción |
+| Key | Action |
 |---|---|
-| `n` | Nueva partición |
-| `d` | Eliminar partición |
-| `t` | Cambiar tipo |
-| `p` | Ver tabla de particiones actual |
-| `l` | Listar tipos disponibles |
-| `w` | Guardar y salir |
-| `q` | Salir SIN guardar |
+| `n` | New partition |
+| `d` | Delete partition |
+| `t` | Change type |
+| `p` | View current partition table |
+| `l` | List available types |
+| `w` | Save and exit |
+| `q` | Exit WITHOUT saving |
 
-> `p` = Primaria (máx. 4) · En sectores, **Enter = valor por defecto**
+> `p` = Primary (max. 4) · In sectors, **Enter = default value**
 
 ---
 
-### Escenario 1: Una partición ocupando todo el disco
+### Scenario 1: One partition occupying the entire disk
 
-→ Debe aparecer `/dev/sdb1`
+→ `/dev/sdb1` should appear
 ```bash
 sudo fdisk /dev/sdb
 # n → p → 1 → [Enter] → [Enter] → w
@@ -146,9 +146,9 @@ sudo fdisk /dev/sdb
 lsblk
 ```
 
-### Escenario 2: Dos particiones (5 GB cada una)
+### Scenario 2: Two partitions (5 GB each)
 
-Primera partición:
+First partition:
 ```bash
 sudo fdisk /dev/sdb
 # n → p → 1 → [Enter] → +5G → w
@@ -156,20 +156,20 @@ sudo fdisk /dev/sdb
 lsblk
 ```
 
-Segunda partición (resto del espacio):
+Second partition (rest of the space):
 ```bash
 sudo fdisk /dev/sdb
 # n → p → 2 → [Enter] → [Enter] → w
 
 lsblk
-# → /dev/sdb1 (5G) y /dev/sdb2 (5G)
+# → /dev/sdb1 (5G) and /dev/sdb2 (5G)
 ```
 
-### Escenario 3: Partición de tamaño específico
+### Scenario 3: Partition of a specific size
 
-Referencia de tamaños: `+2G` · `+500M` · `+1T` · `+2048M`
+Size reference: `+2G` · `+500M` · `+1T` · `+2048M`
 
-Crear partición de 3 GB exactos:
+Create an exact 3 GB partition:
 ```bash
 sudo fdisk /dev/sdb
 # n → p → 1 → [Enter] → +3G → w
@@ -177,10 +177,10 @@ sudo fdisk /dev/sdb
 
 ---
 
-<a name="parte-4"></a>
-## 💿 PARTE 4: Formatear particiones
+<a name="part-4"></a>
+## 💿 PART 4: Format partitions
 
-### ext4 (más común en Linux)
+### ext4 (most common in Linux)
 ```bash
 sudo mkfs.ext4 /dev/sdb1
 ```
@@ -190,116 +190,116 @@ sudo mkfs.ext4 /dev/sdb1
 sudo mkfs.xfs /dev/sdb1
 ```
 
-### vfat — FAT32, compatible Windows
+### vfat — FAT32, Windows compatible
 ```bash
 sudo mkfs.vfat /dev/sdb1
 ```
 
-### ntfs — compatible Windows
+### ntfs — Windows compatible
 ```bash
 sudo apt install -y ntfs-3g
 sudo mkfs.ntfs /dev/sdb1
 ```
 
-### Con etiqueta (label)
-→ `lsblk -f` debe mostrar `LABEL: DATOS`
+### With label
+→ `lsblk -f` should show `LABEL: DATA`
 ```bash
-sudo mkfs.ext4 -L DATOS /dev/sdb1
+sudo mkfs.ext4 -L DATA /dev/sdb1
 lsblk -f
 ```
 
 ---
 
-<a name="parte-5"></a>
-## 🗂️ PARTE 5: Montar particiones
+<a name="part-5"></a>
+## 🗂️ PART 5: Mount partitions
 
-### Montaje manual temporal
-→ `df -h` debe mostrar `/dev/sdb1` montado en `/mnt/datos`
+### Temporary manual mount
+→ `df -h` should show `/dev/sdb1` mounted at `/mnt/data`
 ```bash
-sudo mkdir -p /mnt/datos
-sudo mount /dev/sdb1 /mnt/datos
-df -h | grep datos
-ls -la /mnt/datos
+sudo mkdir -p /mnt/data
+sudo mount /dev/sdb1 /mnt/data
+df -h | grep data
+ls -la /mnt/data
 ```
 
-### Montar con opciones específicas
+### Mount with specific options
 ```bash
-sudo mount -o rw,uid=1000,gid=1000 /dev/sdb1 /mnt/datos
+sudo mount -o rw,uid=1000,gid=1000 /dev/sdb1 /mnt/data
 ```
 
-Opciones: `rw` = lectura/escritura · `ro` = solo lectura · `uid=1000` = propietario · `gid=1000` = grupo
+Options: `rw` = read/write · `ro` = read only · `uid=1000` = owner · `gid=1000` = group
 
-### Desmontar
+### Unmount
 ```bash
-sudo umount /mnt/datos
-# O por dispositivo:
+sudo umount /mnt/data
+# Or by device:
 sudo umount /dev/sdb1
 ```
 
-🛠 Si dice "target is busy":
+🛠 If it says "target is busy":
 ```bash
-sudo lsof /mnt/datos          # Ver qué proceso lo usa
+sudo lsof /mnt/data           # See which process is using it
 sudo kill -9 [PID]
-sudo umount -l /mnt/datos     # Forzar (con precaución)
+sudo umount -l /mnt/data      # Force (with caution)
 ```
 
 ---
 
-<a name="parte-6"></a>
-## 🔄 PARTE 6: Montaje permanente (/etc/fstab)
+<a name="part-6"></a>
+## 🔄 PART 6: Permanent mount (/etc/fstab)
 
-### Formato de una entrada en fstab
+### Format of an fstab entry
 ```
-<dispositivo>  <punto_montaje>  <filesystem>  <opciones>  <dump>  <fsck>
+<device>  <mount_point>  <filesystem>  <options>  <dump>  <fsck>
 ```
-- `UUID=...` → identificador único · `defaults` → opciones estándar (rw, suid, dev, exec, auto, nouser, async)
-- `dump`: 0 = no backup · `fsck`: 0 = no chequear, 1 = primero, 2 = después
+- `UUID=...` → unique identifier · `defaults` → standard options (rw, suid, dev, exec, auto, nouser, async)
+- `dump`: 0 = no backup · `fsck`: 0 = don't check, 1 = first, 2 = after
 
-### Añadir montaje automático al arranque
+### Add automatic mount at boot
 
-Obtener UUID, editar fstab, probar y reiniciar:
-→ `sudo mount -a` sin errores = correcto. Tras reinicio `df -h | grep datos` debe mostrar el disco montado.
+Get UUID, edit fstab, test and reboot:
+→ `sudo mount -a` without errors = correct. After reboot `df -h | grep data` should show the disk mounted.
 ```bash
 sudo blkid /dev/sdb1
-# Copiar el UUID
+# Copy the UUID
 
 sudo nano /etc/fstab
-# Añadir al final:
-# UUID=11111111-2222-3333-4444-555555555555  /mnt/datos  ext4  defaults  0  2
+# Add at the end:
+# UUID=11111111-2222-3333-4444-555555555555  /mnt/data  ext4  defaults  0  2
 
 sudo mount -a
-df -h | grep datos
+df -h | grep data
 sudo reboot
-# Tras reinicio:
-df -h | grep datos
+# After reboot:
+df -h | grep data
 ```
 
-### Opciones avanzadas de montaje en fstab
+### Advanced mount options in fstab
 
 ```
-# Solo lectura
-UUID=...  /mnt/datos  ext4  ro  0  2
+# Read only
+UUID=...  /mnt/data  ext4  ro  0  2
 
-# Con permisos específicos
-UUID=...  /mnt/datos  ext4  defaults,uid=1000,gid=1000  0  2
+# With specific permissions
+UUID=...  /mnt/data  ext4  defaults,uid=1000,gid=1000  0  2
 
-# Sin ejecución de binarios (seguridad)
-UUID=...  /mnt/datos  ext4  defaults,noexec  0  2
+# Without binary execution (security)
+UUID=...  /mnt/data  ext4  defaults,noexec  0  2
 
-# No montar automáticamente
-UUID=...  /mnt/datos  ext4  noauto  0  0
+# Do not mount automatically
+UUID=...  /mnt/data  ext4  noauto  0  0
 ```
 
 ---
 
-<a name="parte-7"></a>
-## 📏 PARTE 7: Redimensionar particiones
+<a name="part-7"></a>
+## 📏 PART 7: Resize partitions
 
-### Método 1: Eliminar y recrear — PIERDE DATOS
+### Method 1: Delete and recreate — LOSES DATA
 
-> ⚠️ Esto BORRA todos los datos de la partición.
+> ⚠️ This DELETES all data from the partition.
 
-Escenario: cambiar `/dev/sdb1` de 5 GB a 8 GB.
+Scenario: change `/dev/sdb1` from 5 GB to 8 GB.
 ```bash
 sudo umount /dev/sdb1
 sudo fdisk /dev/sdb
@@ -307,47 +307,47 @@ sudo fdisk /dev/sdb
 # n → p → 1 → [Enter] → +8G → w
 
 sudo mkfs.ext4 /dev/sdb1
-sudo mount /dev/sdb1 /mnt/datos
+sudo mount /dev/sdb1 /mnt/data
 ```
 
-### Método 2: Redimensionar sin perder datos — solo ext4
+### Method 2: Resize without losing data — ext4 only
 
-> ⚠️ La partición debe estar **desmontada**.
+> ⚠️ The partition must be **unmounted**.
 
-> ⚠️ Al recrear la partición con fdisk, asegurarse de empezar en el **mismo sector inicial**. Cuando fdisk pregunte si eliminar la firma ext4, responder **N**.
+> ⚠️ When recreating the partition with fdisk, make sure to start at the **same initial sector**. When fdisk asks whether to remove the ext4 signature, answer **N**.
 
 ```bash
 sudo umount /dev/sdb1
 sudo fdisk /dev/sdb
 # d → 1
 # n → p → 1 → [Enter] → [Enter]
-# N (NO eliminar firma ext4)
+# N (do NOT remove ext4 signature)
 # w
 
 sudo e2fsck -f /dev/sdb1
 sudo resize2fs /dev/sdb1
-sudo mount /dev/sdb1 /mnt/datos
-df -h /mnt/datos
+sudo mount /dev/sdb1 /mnt/data
+df -h /mnt/data
 ```
 
 ---
 
-<a name="parte-8"></a>
-## 🔄 PARTE 8: Cambiar tipo de partición
+<a name="part-8"></a>
+## 🔄 PART 8: Change partition type
 
-### Tipos más usados
+### Most used types
 
-| Código | Tipo |
+| Code | Type |
 |---|---|
-| `83` | Linux (por defecto) |
+| `83` | Linux (default) |
 | `82` | Linux swap |
 | `8e` | Linux LVM |
 
-Ver lista completa dentro de fdisk: tecla `l`
+View full list inside fdisk: key `l`
 
-### Cambiar tipo — ejemplo a Linux LVM (8e)
+### Change type — example to Linux LVM (8e)
 
-→ `sudo fdisk -l /dev/sdb` debe mostrar `Type: Linux LVM`
+→ `sudo fdisk -l /dev/sdb` should show `Type: Linux LVM`
 ```bash
 sudo fdisk /dev/sdb
 # t → 1 → 8e → w
@@ -357,138 +357,138 @@ sudo fdisk -l /dev/sdb
 
 ---
 
-<a name="parte-9"></a>
-## 🗑️ PARTE 9: Eliminar particiones
+<a name="part-9"></a>
+## 🗑️ PART 9: Delete partitions
 
-### Eliminar una partición
+### Delete a partition
 ```bash
 sudo fdisk /dev/sdb
 # d → 1 → w
 ```
 
-### Eliminar todas las particiones
+### Delete all partitions
 ```bash
 sudo fdisk /dev/sdb
 # d → 1 → d → 2 → d → 3 → ... → w
 ```
 
-### Limpiar completamente un disco
+### Completely wipe a disk
 
-> ⚠️ Esto BORRA PERMANENTEMENTE todo el disco. Ctrl+C para cancelar.
+> ⚠️ This PERMANENTLY DELETES everything on the disk. Ctrl+C to cancel.
 
 ```bash
-# Todo el disco:
+# Entire disk:
 sudo dd if=/dev/zero of=/dev/sdb bs=1M status=progress
 
-# Solo los primeros 10 MB (tabla de particiones):
+# Only the first 10 MB (partition table):
 sudo dd if=/dev/zero of=/dev/sdb bs=1M count=10
 ```
 
 ---
 
-<a name="parte-10"></a>
-## 🔄 PARTE 10: Particiones SWAP
+<a name="part-10"></a>
+## 🔄 PART 10: SWAP partitions
 
-### Crear, activar y hacer permanente la SWAP
+### Create, activate and make SWAP permanent
 
 ```bash
-# 1. Crear partición swap con fdisk
+# 1. Create swap partition with fdisk
 sudo fdisk /dev/sdb
 # n → p → 2 → [Enter] → +2G → w
 
-# 2. Cambiar tipo a swap (82)
+# 2. Change type to swap (82)
 sudo fdisk /dev/sdb
 # t → 2 → 82 → w
 
-# 3. Formatear, activar y verificar
+# 3. Format, activate and verify
 sudo mkswap /dev/sdb2
 sudo swapon /dev/sdb2
 swapon --show
 free -h
 
-# 4. Hacer permanente en fstab
+# 4. Make permanent in fstab
 sudo blkid /dev/sdb2
 sudo nano /etc/fstab
-# Añadir: UUID=... none swap sw 0 0
+# Add: UUID=... none swap sw 0 0
 ```
 
-### Desactivar swap
+### Deactivate swap
 ```bash
 sudo swapoff /dev/sdb2
 ```
 
 ---
 
-<a name="parte-11"></a>
-## 🔐 PARTE 11: Permisos y propietarios
+<a name="part-11"></a>
+## 🔐 PART 11: Permissions and owners
 
-### Cambiar propietario y permisos del disco montado
+### Change owner and permissions of the mounted disk
 
-→ `ls -ld /mnt/datos` debe mostrar el propietario y permisos correctos
+→ `ls -ld /mnt/data` should show the correct owner and permissions
 ```bash
-sudo chown ubuntu:ubuntu /mnt/datos         # Cambiar propietario
-sudo chown -R ubuntu:ubuntu /mnt/datos      # Recursivo
-sudo chmod 755 /mnt/datos                   # rwxr-xr-x
-sudo chmod 777 /mnt/datos                   # Todos los permisos
-sudo chmod 700 /mnt/datos                   # Solo propietario
-ls -ld /mnt/datos
+sudo chown ubuntu:ubuntu /mnt/data         # Change owner
+sudo chown -R ubuntu:ubuntu /mnt/data      # Recursive
+sudo chmod 755 /mnt/data                   # rwxr-xr-x
+sudo chmod 777 /mnt/data                   # All permissions
+sudo chmod 700 /mnt/data                   # Owner only
+ls -ld /mnt/data
 ```
 
-### Leer la salida de ls -ld
+### Reading the ls -ld output
 
 ```
-drwxr-xr-x 3 ubuntu ubuntu 4096 Feb 22 10:00 /mnt/datos
+drwxr-xr-x 3 ubuntu ubuntu 4096 Feb 22 10:00 /mnt/data
 │└──┘└──┘└──┘
-│  │   │   └── Otros: r-x
-│  │   └────── Grupo: r-x
-│  └────────── Propietario: rwx
-└───────────── d = directorio
+│  │   │   └── Others: r-x
+│  │   └────── Group: r-x
+│  └────────── Owner: rwx
+└───────────── d = directory
 ```
 
 ---
 
-<a name="parte-12"></a>
-## 🛠️ PARTE 12: Troubleshooting
+<a name="part-12"></a>
+## 🛠️ PART 12: Troubleshooting
 
 ### Error: "No space left on device"
 ```bash
-df -h                                  # Ver espacio en disco
-df -i                                  # Ver inodos (puede estar lleno aunque haya espacio)
-sudo du -h / | sort -h | tail -20      # Buscar archivos grandes
+df -h                                  # View disk space
+df -i                                  # View inodes (may be full even if there's space)
+sudo du -h / | sort -h | tail -20      # Find large files
 ```
 
 ### Error: "mount: wrong fs type, bad option, bad superblock"
-Causas: filesystem no formateado o tipo incorrecto en fstab.
+Causes: unformatted filesystem or wrong type in fstab.
 ```bash
-sudo blkid /dev/sdb1          # Ver tipo real
-sudo mkfs.ext4 /dev/sdb1      # Formatear si está vacío
-cat /etc/fstab                # Verificar fstab
+sudo blkid /dev/sdb1          # See actual type
+sudo mkfs.ext4 /dev/sdb1      # Format if empty
+cat /etc/fstab                # Verify fstab
 ```
 
-### Error: "target is busy" al desmontar
+### Error: "target is busy" when unmounting
 ```bash
-sudo lsof /mnt/datos          # Ver qué proceso lo usa
+sudo lsof /mnt/data           # See which process is using it
 sudo kill -9 [PID]
-sudo umount -l /mnt/datos     # Forzar si es necesario
+sudo umount -l /mnt/data      # Force if necessary
 ```
 
-### Error en /etc/fstab que impide arrancar
-1. En GRUB → "Advanced options" → "recovery mode" → "root"
+### Error in /etc/fstab that prevents booting
+1. In GRUB → "Advanced options" → "recovery mode" → "root"
 ```bash
 nano /etc/fstab
-# Comentar la línea problemática con #
+# Comment out the problematic line with #
 reboot
 ```
 
-### Disco no aparece en lsblk — VirtualBox
-Verificar en VirtualBox → Configuración → Almacenamiento que el disco aparece.
+### Disk doesn't appear in lsblk — VirtualBox
+Check in VirtualBox → Settings → Storage that the disk appears.
 ```bash
 echo "- - -" | sudo tee /sys/class/scsi_host/host*/scan
 ls -la /dev/sd*
 ```
 
-### Disco no aparece en lsblk — AWS
-Verificar en EC2 → Volumes que el estado sea "in-use".
+### Disk doesn't appear in lsblk — AWS
+Check in EC2 → Volumes that the status is "in-use".
 ```bash
 ls -la /dev/nvme*
 ls -la /dev/xvd*
@@ -497,34 +497,34 @@ ls -la /dev/xvd*
 ---
 
 <a name="cheatsheet"></a>
-## 📝 CHEATSHEET RÁPIDO
+## 📝 QUICK CHEATSHEET
 
 ```bash
-# VER DISCOS
-lsblk                                      # Todos los discos y particiones
-lsblk -f                                   # Con filesystems y UUIDs
-sudo fdisk -l                              # Lista detallada
-df -h                                      # Espacio usado/disponible
-df -i                                      # Inodos
-du -sh /carpeta                            # Tamaño de carpeta
-sudo blkid                                 # UUIDs de todas las particiones
+# VIEW DISKS
+lsblk                                      # All disks and partitions
+lsblk -f                                   # With filesystems and UUIDs
+sudo fdisk -l                              # Detailed listing
+df -h                                      # Used/available space
+df -i                                      # Inodes
+du -sh /folder                             # Folder size
+sudo blkid                                 # UUIDs of all partitions
 
-# PARTICIONAR (dentro de fdisk)
+# PARTITION (inside fdisk)
 sudo fdisk /dev/sdb
-# n = nueva | d = eliminar | t = cambiar tipo | p = ver | w = guardar | q = salir sin guardar
+# n = new | d = delete | t = change type | p = view | w = save | q = exit without saving
 
-# FORMATEAR
+# FORMAT
 sudo mkfs.ext4 /dev/sdb1                   # ext4
-sudo mkfs.ext4 -L DATOS /dev/sdb1          # ext4 con etiqueta
+sudo mkfs.ext4 -L DATA /dev/sdb1           # ext4 with label
 sudo mkfs.xfs /dev/sdb1                    # xfs
 sudo mkfs.vfat /dev/sdb1                   # FAT32
 sudo mkswap /dev/sdb2                      # swap
 
-# MONTAR / DESMONTAR
-sudo mkdir /mnt/datos
-sudo mount /dev/sdb1 /mnt/datos
-sudo umount /mnt/datos
-sudo mount -a                              # Montar todo de fstab
+# MOUNT / UNMOUNT
+sudo mkdir /mnt/data
+sudo mount /dev/sdb1 /mnt/data
+sudo umount /mnt/data
+sudo mount -a                              # Mount everything from fstab
 
 # SWAP
 sudo mkswap /dev/sdb2
@@ -532,22 +532,22 @@ sudo swapon /dev/sdb2
 sudo swapoff /dev/sdb2
 swapon --show
 
-# REDIMENSIONAR (ext4, sin datos)
+# RESIZE (ext4, no data loss)
 sudo e2fsck -f /dev/sdb1
 sudo resize2fs /dev/sdb1
 
-# PERMISOS
-sudo chown ubuntu:ubuntu /mnt/datos
-sudo chown -R ubuntu:ubuntu /mnt/datos
-sudo chmod 755 /mnt/datos
+# PERMISSIONS
+sudo chown ubuntu:ubuntu /mnt/data
+sudo chown -R ubuntu:ubuntu /mnt/data
+sudo chmod 755 /mnt/data
 ```
 
 ---
 
-<a name="escenarios"></a>
-## 🎯 ESCENARIOS TÍPICOS DE EXAMEN
+<a name="scenarios"></a>
+## 🎯 TYPICAL EXAM SCENARIOS
 
-### Escenario 1: Añadir disco de 10 GB para datos
+### Scenario 1: Add a 10 GB data disk
 
 ```bash
 lsblk
@@ -555,20 +555,20 @@ lsblk
 sudo fdisk /dev/sdb
 # n → p → 1 → [Enter] → [Enter] → w
 
-sudo mkfs.ext4 -L DATOS /dev/sdb1
-sudo mkdir /mnt/datos
-sudo mount /dev/sdb1 /mnt/datos
+sudo mkfs.ext4 -L DATA /dev/sdb1
+sudo mkdir /mnt/data
+sudo mount /dev/sdb1 /mnt/data
 
 sudo blkid /dev/sdb1
-# Copiar UUID
+# Copy UUID
 sudo nano /etc/fstab
-# Añadir: UUID=... /mnt/datos ext4 defaults 0 2
+# Add: UUID=... /mnt/data ext4 defaults 0 2
 
 sudo mount -a
-df -h | grep datos
+df -h | grep data
 ```
 
-### Escenario 2: Crear partición SWAP de 2 GB
+### Scenario 2: Create a 2 GB SWAP partition
 
 ```bash
 sudo fdisk /dev/sdb
@@ -582,12 +582,12 @@ sudo swapon /dev/sdb2
 swapon --show
 
 sudo blkid /dev/sdb2
-# Copiar UUID
+# Copy UUID
 sudo nano /etc/fstab
-# Añadir: UUID=... none swap sw 0 0
+# Add: UUID=... none swap sw 0 0
 ```
 
-### Escenario 3: Dividir disco en 2 particiones iguales (disco de 10 GB → 5 GB + 5 GB)
+### Scenario 3: Split disk into 2 equal partitions (10 GB disk → 5 GB + 5 GB)
 
 ```bash
 sudo fdisk /dev/sdb
@@ -598,24 +598,24 @@ sudo fdisk /dev/sdb
 
 sudo mkfs.ext4 /dev/sdb1
 sudo mkfs.ext4 /dev/sdb2
-sudo mkdir /mnt/datos1 /mnt/datos2
-sudo mount /dev/sdb1 /mnt/datos1
-sudo mount /dev/sdb2 /mnt/datos2
-df -h | grep datos
+sudo mkdir /mnt/data1 /mnt/data2
+sudo mount /dev/sdb1 /mnt/data1
+sudo mount /dev/sdb2 /mnt/data2
+df -h | grep data
 ```
 
 ---
 
-## 🎯 FIN DE LA GUÍA
+## 🎯 END OF GUIDE
 
-- ✅ Ver información de discos — lsblk, fdisk, df, du, blkid
-- ✅ Añadir discos en VirtualBox y AWS
-- ✅ Particionar con fdisk — una, varias, tamaño específico
-- ✅ Formatear — ext4, xfs, vfat, ntfs, swap
-- ✅ Montar manual y automático · /etc/fstab completo
-- ✅ Redimensionar particiones con y sin pérdida de datos
-- ✅ Cambiar tipos de partición · Eliminar particiones
-- ✅ Crear y gestionar SWAP · Permisos y propietarios
-- ✅ Troubleshooting completo
+- ✅ View disk information — lsblk, fdisk, df, du, blkid
+- ✅ Add disks in VirtualBox and AWS
+- ✅ Partition with fdisk — one, several, specific size
+- ✅ Format — ext4, xfs, vfat, ntfs, swap
+- ✅ Manual and automatic mount · complete /etc/fstab
+- ✅ Resize partitions with and without data loss
+- ✅ Change partition types · Delete partitions
+- ✅ Create and manage SWAP · Permissions and owners
+- ✅ Complete troubleshooting
 
-> Para el examen: practica los 3 escenarios · memoriza el cheatsheet · verifica siempre con `lsblk` después de cada paso · usa `sudo mount -a` para probar fstab antes de reiniciar.
+> For the exam: practice the 3 scenarios · memorize the cheatsheet · always verify with `lsblk` after each step · use `sudo mount -a` to test fstab before rebooting.
