@@ -1,9 +1,9 @@
 # 🐧 Ubuntu Server + Samba AD DC - ADSO Cv1
 
-![Ubuntu](https://img.shields.io/badge/Ubuntu_24.04_LTS-E95420?style=for-the-badge&logo=ubuntu&logoColor=white)
-![Samba](https://img.shields.io/badge/Samba-AD_DC-blue?style=for-the-badge)
-![Windows](https://img.shields.io/badge/Windows_10-0078D6?style=for-the-badge&logo=windows&logoColor=white)
-![Bash](https://img.shields.io/badge/Bash-Scripting-4EAA25?style=for-the-badge&logo=gnu-bash&logoColor=white)
+![Ubuntu](https://badgen.net/badge/Ubuntu/24.04_LTS/E95420?icon=ubuntu)
+![Samba](https://badgen.net/badge/Samba/4.x/0052CC?icon=terminal)
+![AWS](https://badgen.net/badge/AWS/EC2/FF9900?icon=aws)
+![Status](https://badgen.net/badge/Status/Complete/green)
 
 > **Technical guide and step-by-step manual for the configuration of: Active Directory Domain Controller under Linux, hybrid client integration, GPO management, ACLs and system auditing.**
 
