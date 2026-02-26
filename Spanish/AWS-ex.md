@@ -1,2592 +1,1296 @@
-\# EJERCICIO AWS ACADEMY - Examen (Guía Paso a Paso Completa)
+# EJERCICIO AWS ACADEMY - Examen (Guía Paso a Paso Completa)
 
+**Objetivo:** Crear dominio `cloud02.city` en AWS con carpeta compartida `/city/trap` donde solo `lando` tiene acceso y `boba` está denegado.
 
-
-\*\*Objetivo:\*\* Crear dominio `cloud02.city` en AWS con carpeta compartida `/city/trap` donde solo `lando` tiene acceso y `boba` está denegado.
-
-
-
-\*\*Configuración:\*\*
-
-\- Dominio: `cloud02.city`
-
-\- NetBIOS Name: `Bespin02`
-
-\- Usuarios: `lando` (acceso), `boba` (denegado)
-
-\- Carpeta compartida: `/city/trap`
-
-\- Crear directorio con iniciales: `CB` (Cristian BR)
-
-
+**Configuración:**
+- Dominio: `cloud02.city`
+- NetBIOS Name: `Bespin02`
+- Usuarios: `lando` (acceso), `boba` (denegado)
+- Carpeta compartida: `/city/trap`
+- Crear directorio con iniciales: `CB` (Cristian BR)
 
 ---
 
+## 📋 PARTE 1: INICIAR AWS ACADEMY Y DESCARGAR CLAVES
 
-
-\## 📋 PARTE 1: INICIAR AWS ACADEMY Y DESCARGAR CLAVES
-
-
-
-\### Paso 1: Entrar a AWS Academy
-
-
+### Paso 1: Entrar a AWS Academy
 
 ```
-
-1\. Abrir navegador (Chrome/Firefox)
-
-2\. Ir a: https://awsacademy.instructure.com/
-
-3\. Iniciar sesión con tu email de estudiante
-
-4\. Clic en tu curso "AWS Academy Learner Lab"
-
-5\. Menú izquierdo → "Modules" → "Learner Lab"
-
-6\. Clic en "Start Lab" (botón verde)
-
-7\. Espera 1-3 minutos hasta que el círculo esté 🟢 verde
-
-8\. Cuando esté verde, clic en "AWS"
-
+1. Abrir navegador (Chrome/Firefox)
+2. Ir a: https://awsacademy.instructure.com/
+3. Iniciar sesión con tu email de estudiante
+4. Clic en tu curso "AWS Academy Learner Lab"
+5. Menú izquierdo → "Modules" → "Learner Lab"
+6. Clic en "Start Lab" (botón verde)
+7. Espera 1-3 minutos hasta que el círculo esté 🟢 verde
+8. Cuando esté verde, clic en "AWS"
 ```
-
-
 
 Se abre la consola de AWS.
 
-
-
 ---
 
-
-
-\### Paso 2: Descargar par de claves SSH
-
-
+### Paso 2: Descargar par de claves SSH
 
 ```
-
-1\. En la página del Learner Lab, clic en "AWS Details" (arriba)
-
-2\. Clic en "Download PEM" (al lado de "SSH Key")
-
-3\. Se descarga "labsuser.pem" en tu carpeta Descargas
-
+1. En la página del Learner Lab, clic en "AWS Details" (arriba)
+2. Clic en "Download PEM" (al lado de "SSH Key")
+3. Se descarga "labsuser.pem" en tu carpeta Descargas
 ```
 
-
-
-\*\*Preparar la clave:\*\*
-
-
+**Preparar la clave:**
 
 ```bash
-
-\# Abrir terminal (Ctrl+Alt+T)
-
+# Abrir terminal (Ctrl+Alt+T)
 cd ~/Descargas
 
-
-
-\# Mover a ~/.ssh/
-
+# Mover a ~/.ssh/
 mv labsuser.pem ~/.ssh/
 
-
-
-\# Dar permisos correctos (OBLIGATORIO)
-
+# Dar permisos correctos (OBLIGATORIO)
 chmod 400 ~/.ssh/labsuser.pem
 
-
-
-\# Verificar
-
+# Verificar
 ls -la ~/.ssh/labsuser.pem
-
 ```
 
-
-
-Debe mostrar: `-r-------- 1 tu\_usuario tu\_usuario ...`
-
-
+Debe mostrar: `-r-------- 1 tu_usuario tu_usuario ...`
 
 ---
 
+## 🔐 PARTE 2: CREAR SECURITY GROUP
 
-
-\## 🔐 PARTE 2: CREAR SECURITY GROUP
-
-
-
-\### Paso 3: Ir al servicio VPC
-
-
+### Paso 3: Ir al servicio VPC
 
 ```
-
-1\. En la consola de AWS, buscar: "VPC"
-
-2\. Clic en "VPC"
-
-3\. Menú izquierdo → "Security Groups"
-
-4\. Clic en "Create security group" (botón naranja)
-
+1. En la consola de AWS, buscar: "VPC"
+2. Clic en "VPC"
+3. Menú izquierdo → "Security Groups"
+4. Clic en "Create security group" (botón naranja)
 ```
-
-
 
 ---
 
+### Paso 4: Configurar Security Group
 
-
-\### Paso 4: Configurar Security Group
-
-
-
-\*\*Basic details:\*\*
-
+**Basic details:**
 ```
-
 Security group name: Cloud02-SG
-
 Description: Security group for cloud02.city domain
-
 VPC: Seleccionar la VPC del lab (Lab VPC o vpc-XXXXXXX)
-
 ```
-
-
 
 ---
 
+### Paso 5: Añadir reglas de entrada (Inbound rules)
 
-
-\### Paso 5: Añadir reglas de entrada (Inbound rules)
-
-
-
-\*\*Clic en "Add rule" para cada una de estas:\*\*
-
-
+**Clic en "Add rule" para cada una de estas:**
 
 | Tipo | Puerto | Protocolo | Origen | Descripción |
-
 |------|--------|-----------|--------|-------------|
-
 | SSH | 22 | TCP | 0.0.0.0/0 | SSH |
-
 | RDP | 3389 | TCP | 0.0.0.0/0 | RDP |
-
 | Custom TCP | 53 | TCP | 10.0.0.0/16 | DNS TCP |
-
 | Custom UDP | 53 | UDP | 10.0.0.0/16 | DNS UDP |
-
 | Custom TCP | 88 | TCP | 10.0.0.0/16 | Kerberos |
-
 | Custom UDP | 88 | UDP | 10.0.0.0/16 | Kerberos UDP |
-
 | Custom TCP | 389 | TCP | 10.0.0.0/16 | LDAP |
-
 | Custom TCP | 445 | TCP | 10.0.0.0/16 | SMB |
-
 | Custom TCP | 636 | TCP | 10.0.0.0/16 | LDAPS |
-
 | Custom TCP | 464 | TCP | 10.0.0.0/16 | Kerberos Pass |
-
 | Custom UDP | 464 | UDP | 10.0.0.0/16 | Kerberos Pass UDP |
-
 | All traffic | All | All | 10.0.0.0/16 | Internal VPC |
 
+**⚠️ IMPORTANTE:** 
+- `10.0.0.0/16` es el rango interno de la VPC
+- Si tu VPC usa otro rango, ajústalo
 
-
-\*\*⚠️ IMPORTANTE:\*\* 
-
-\- `10.0.0.0/16` es el rango interno de la VPC
-
-\- Si tu VPC usa otro rango, ajústalo
-
-
-
-\*\*Clic en "Create security group"\*\*
-
-
+**Clic en "Create security group"**
 
 ---
 
+## 🖥️ PARTE 3: CREAR INSTANCIA UBUNTU SERVER
 
-
-\## 🖥️ PARTE 3: CREAR INSTANCIA UBUNTU SERVER
-
-
-
-\### Paso 6: Lanzar instancia Ubuntu
-
-
+### Paso 6: Lanzar instancia Ubuntu
 
 ```
-
-1\. Buscar: "EC2"
-
-2\. Clic en "EC2"
-
-3\. Menú izquierdo → "Instances"
-
-4\. Clic en "Launch instances" (botón naranja)
-
+1. Buscar: "EC2"
+2. Clic en "EC2"
+3. Menú izquierdo → "Instances"
+4. Clic en "Launch instances" (botón naranja)
 ```
-
-
 
 ---
 
+### Paso 7: Configurar instancia Ubuntu
 
-
-\### Paso 7: Configurar instancia Ubuntu
-
-
-
-\*\*Name and tags:\*\*
-
+**Name and tags:**
 ```
-
 Name: Ubuntu-DC-Cloud02
-
 ```
 
-
-
-\*\*Application and OS Images:\*\*
-
+**Application and OS Images:**
 ```
-
 AMI: Ubuntu Server 24.04 LTS
-
 Architecture: 64-bit (x86)
-
 ```
 
-
-
-\*\*Instance type:\*\*
-
+**Instance type:**
 ```
-
 Instance type: t3.small (o t2.medium si no hay t3.small)
-
 ```
 
-
-
-\*\*Key pair:\*\*
-
+**Key pair:**
 ```
-
 Key pair: vockey (ya existe)
-
 ```
-
-
 
 ---
 
-
-
-\*\*Network settings → Clic en "Edit":\*\*
-
-
+**Network settings → Clic en "Edit":**
 
 ```
-
 VPC: Lab VPC (la que tiene el lab)
-
 Subnet: Cualquier subnet pública (Public Subnet 1)
-
 Auto-assign public IP: Enable ✅
-
 Firewall (security groups): Select existing security group
-
-&nbsp; → Seleccionar: Cloud02-SG
-
+  → Seleccionar: Cloud02-SG
 ```
-
-
 
 ---
 
-
-
-\*\*Configure storage:\*\*
-
+**Configure storage:**
 ```
-
 Size: 20 GiB
-
 Volume type: gp3
-
 Delete on termination: ✅
-
 ```
-
-
 
 ---
 
-
-
-\*\*Advanced details:\*\*
-
+**Advanced details:**
 ```
-
 Scroll hasta "IAM instance profile"
-
 Seleccionar: LabInstanceProfile
-
 ```
-
-
 
 ---
 
-
-
-\*\*Clic en "Launch instance"\*\*
-
-
+**Clic en "Launch instance"**
 
 ---
 
-
-
-\### Paso 8: Esperar y anotar IPs del Ubuntu
-
-
+### Paso 8: Esperar y anotar IPs del Ubuntu
 
 ```
-
-1\. Clic en "View all instances"
-
-2\. Espera 2-3 minutos
-
-3\. Estado debe ser: 🟢 Running
-
-4\. Status checks: ✅ 2/2 checks passed
-
-5\. Seleccionar la instancia "Ubuntu-DC-Cloud02"
-
-6\. Panel inferior "Details" → Anotar:
-
+1. Clic en "View all instances"
+2. Espera 2-3 minutos
+3. Estado debe ser: 🟢 Running
+4. Status checks: ✅ 2/2 checks passed
+5. Seleccionar la instancia "Ubuntu-DC-Cloud02"
+6. Panel inferior "Details" → Anotar:
 ```
 
-
-
-📝 \*\*Anotar en papel:\*\*
-
+📝 **Anotar en papel:**
 ```
-
 Ubuntu Server:
-
-&nbsp; IP pública: \_\_\_.\_\_\_.\_\_\_.\_\_\_ (ejemplo: 54.173.102.89)
-
-&nbsp; IP privada: 10.0.\_\_\_.\_\_\_ (ejemplo: 10.0.1.229)
-
+  IP pública: ___.___.___.___ (ejemplo: 54.173.102.89)
+  IP privada: 10.0.___.___ (ejemplo: 10.0.1.229)
 ```
-
-
 
 ---
 
+### Paso 9: Asignar Elastic IP al Ubuntu
 
-
-\### Paso 9: Asignar Elastic IP al Ubuntu
-
-
-
-\*\*¿Por qué?\*\* Para que la IP pública no cambie al reiniciar.
-
-
+**¿Por qué?** Para que la IP pública no cambie al reiniciar.
 
 ```
-
-1\. EC2 → Menú izquierdo → "Elastic IPs"
-
-2\. Clic en "Allocate Elastic IP address"
-
-3\. Clic en "Allocate"
-
-4\. Seleccionar la Elastic IP recién creada (checkbox)
-
-5\. Actions → Associate Elastic IP address
-
-6\. Instance: Seleccionar "Ubuntu-DC-Cloud02"
-
-7\. Private IP: Dejar la que aparece
-
-8\. Clic en "Associate"
-
+1. EC2 → Menú izquierdo → "Elastic IPs"
+2. Clic en "Allocate Elastic IP address"
+3. Clic en "Allocate"
+4. Seleccionar la Elastic IP recién creada (checkbox)
+5. Actions → Associate Elastic IP address
+6. Instance: Seleccionar "Ubuntu-DC-Cloud02"
+7. Private IP: Dejar la que aparece
+8. Clic en "Associate"
 ```
 
-
-
-📝 \*\*Actualizar nota:\*\*
-
+📝 **Actualizar nota:**
 ```
-
 Ubuntu Server:
-
-&nbsp; Elastic IP: \_\_\_.\_\_\_.\_\_\_.\_\_\_ (nueva IP pública)
-
-&nbsp; IP privada: 10.0.\_\_\_.\_\_\_
-
+  Elastic IP: ___.___.___.___ (nueva IP pública)
+  IP privada: 10.0.___.___
 ```
-
-
 
 ---
 
+## 💻 PARTE 4: CREAR INSTANCIA WINDOWS SERVER
 
-
-\## 💻 PARTE 4: CREAR INSTANCIA WINDOWS SERVER
-
-
-
-\### Paso 10: Lanzar instancia Windows
-
-
+### Paso 10: Lanzar instancia Windows
 
 ```
-
-1\. EC2 → Instances → Launch instances
-
+1. EC2 → Instances → Launch instances
 ```
-
-
 
 ---
 
+### Paso 11: Configurar instancia Windows
 
-
-\### Paso 11: Configurar instancia Windows
-
-
-
-\*\*Name:\*\*
-
+**Name:**
 ```
-
 Name: Windows-Client-Cloud02
-
 ```
 
-
-
-\*\*Application and OS Images:\*\*
-
+**Application and OS Images:**
 ```
-
 AMI: Microsoft Windows Server 2022 Base
-
 Architecture: 64-bit (x86)
-
 ```
 
-
-
-\*\*Instance type:\*\*
-
+**Instance type:**
 ```
-
 Instance type: t3.small
-
 ```
 
-
-
-\*\*Key pair:\*\*
-
+**Key pair:**
 ```
-
 Key pair: vockey (el mismo)
-
 ```
-
-
 
 ---
 
-
-
-\*\*Network settings → Edit:\*\*
-
-
+**Network settings → Edit:**
 
 ```
-
 VPC: MISMA VPC que Ubuntu (Lab VPC)
-
 Subnet: MISMA subnet o cualquier pública
-
 Auto-assign public IP: Enable ✅
-
 Security group: Select existing
-
-&nbsp; → Seleccionar: Cloud02-SG (el mismo que Ubuntu)
-
+  → Seleccionar: Cloud02-SG (el mismo que Ubuntu)
 ```
-
-
 
 ---
 
-
-
-\*\*Storage:\*\*
-
+**Storage:**
 ```
-
 Size: 30 GiB
-
 Type: gp3
-
 ```
 
-
-
-\*\*Advanced details:\*\*
-
+**Advanced details:**
 ```
-
 IAM instance profile: LabInstanceProfile
-
 ```
 
-
-
-\*\*Launch instance\*\*
-
-
+**Launch instance**
 
 ---
 
-
-
-\### Paso 12: Esperar y anotar IPs de Windows
-
-
+### Paso 12: Esperar y anotar IPs de Windows
 
 ```
-
-1\. View all instances
-
-2\. Espera 5-7 minutos (Windows tarda más)
-
-3\. Estado: 🟢 Running
-
-4\. Status checks: ✅ 2/2 checks passed
-
-5\. Seleccionar "Windows-Client-Cloud02"
-
-6\. Panel inferior → Anotar:
-
+1. View all instances
+2. Espera 5-7 minutos (Windows tarda más)
+3. Estado: 🟢 Running
+4. Status checks: ✅ 2/2 checks passed
+5. Seleccionar "Windows-Client-Cloud02"
+6. Panel inferior → Anotar:
 ```
 
-
-
-📝 \*\*Anotar:\*\*
-
+📝 **Anotar:**
 ```
-
 Windows Server:
-
-&nbsp; IP pública: \_\_\_.\_\_\_.\_\_\_.\_\_\_ (ejemplo: 54.221.100.222)
-
-&nbsp; IP privada: 10.0.\_\_\_.\_\_\_ (ejemplo: 10.0.14.107)
-
+  IP pública: ___.___.___.___ (ejemplo: 54.221.100.222)
+  IP privada: 10.0.___.___ (ejemplo: 10.0.14.107)
 ```
-
-
 
 ---
 
-
-
-\### Paso 13: Asignar Elastic IP a Windows
-
-
+### Paso 13: Asignar Elastic IP a Windows
 
 ```
-
-1\. EC2 → Elastic IPs → Allocate Elastic IP address
-
-2\. Allocate
-
-3\. Seleccionar la nueva Elastic IP
-
-4\. Actions → Associate Elastic IP address
-
-5\. Instance: Seleccionar "Windows-Client-Cloud02"
-
-6\. Associate
-
+1. EC2 → Elastic IPs → Allocate Elastic IP address
+2. Allocate
+3. Seleccionar la nueva Elastic IP
+4. Actions → Associate Elastic IP address
+5. Instance: Seleccionar "Windows-Client-Cloud02"
+6. Associate
 ```
 
-
-
-📝 \*\*Actualizar:\*\*
-
+📝 **Actualizar:**
 ```
-
 Windows Server:
-
-&nbsp; Elastic IP: \_\_\_.\_\_\_.\_\_\_.\_\_\_
-
-&nbsp; IP privada: 10.0.\_\_\_.\_\_\_
-
+  Elastic IP: ___.___.___.___
+  IP privada: 10.0.___.___
 ```
-
-
 
 ---
 
+### Paso 14: Obtener contraseña de Windows
 
-
-\### Paso 14: Obtener contraseña de Windows
-
-
-
-⚠️ \*\*ESPERAR 5-7 minutos después de lanzar antes de hacer esto.\*\*
-
-
+⚠️ **ESPERAR 5-7 minutos después de lanzar antes de hacer esto.**
 
 ```
-
-1\. EC2 → Instances → Seleccionar "Windows-Client-Cloud02"
-
-2\. Botón "Connect" (arriba)
-
-3\. Pestaña "RDP client"
-
-4\. Clic en "Get password"
-
-5\. Clic en "Upload private key file"
-
-6\. Navegar a: ~/.ssh/labsuser.pem
-
-7\. Seleccionar y abrir
-
-8\. Clic en "Decrypt password"
-
-9\. COPIAR la contraseña que aparece
-
+1. EC2 → Instances → Seleccionar "Windows-Client-Cloud02"
+2. Botón "Connect" (arriba)
+3. Pestaña "RDP client"
+4. Clic en "Get password"
+5. Clic en "Upload private key file"
+6. Navegar a: ~/.ssh/labsuser.pem
+7. Seleccionar y abrir
+8. Clic en "Decrypt password"
+9. COPIAR la contraseña que aparece
 ```
 
-
-
-📝 \*\*Anotar:\*\*
-
+📝 **Anotar:**
 ```
-
 Windows Administrator:
-
-&nbsp; Usuario: Administrator
-
-&nbsp; Contraseña: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ (ejemplo: xY9!mK2@pL5#qR8)
-
+  Usuario: Administrator
+  Contraseña: _____________________ (ejemplo: xY9!mK2@pL5#qR8)
 ```
-
-
 
 ---
 
+## 🔧 PARTE 5: CONFIGURAR UBUNTU SERVER CON SAMBA
 
+### Paso 15: Conectar por SSH al Ubuntu
 
-\## 🔧 PARTE 5: CONFIGURAR UBUNTU SERVER CON SAMBA
-
-
-
-\### Paso 15: Conectar por SSH al Ubuntu
-
-
-
-\*\*Desde tu terminal:\*\*
-
-
+**Desde tu terminal:**
 
 ```bash
-
 ssh -i ~/.ssh/labsuser.pem ubuntu@54.173.102.89
-
 ```
 
+**Cambiar `54.173.102.89` por tu Elastic IP de Ubuntu.**
 
-
-\*\*Cambiar `54.173.102.89` por tu Elastic IP de Ubuntu.\*\*
-
-
-
-\*\*Si pregunta "Are you sure...?"\*\*
-
+**Si pregunta "Are you sure...?"**
 ```
-
 Escribir: yes
-
 Presionar Enter
-
 ```
-
-
 
 Debe aparecer:
-
 ```
-
 ubuntu@ip-10-0-X-X:~$
-
 ```
-
-
 
 ✅ Estás dentro del servidor Ubuntu.
 
-
-
 ---
 
-
-
-\### Paso 16: Actualizar sistema
-
-
+### Paso 16: Actualizar sistema
 
 ```bash
-
 sudo apt update
-
 sudo apt upgrade -y
-
 ```
-
-
 
 Espera 2-5 minutos.
 
-
-
 ---
 
-
-
-\### Paso 17: Configurar hostname
-
-
+### Paso 17: Configurar hostname
 
 ```bash
-
 sudo hostnamectl set-hostname bespin02
-
 ```
-
-
 
 Verificar:
-
 ```bash
-
 hostnamectl
-
 ```
-
-
 
 Debe mostrar: `Static hostname: bespin02`
 
-
-
 ---
 
-
-
-\### Paso 18: Configurar /etc/hosts
-
-
+### Paso 18: Configurar /etc/hosts
 
 ```bash
-
 sudo nano /etc/hosts
-
 ```
 
-
-
-\*\*BORRAR TODO y escribir:\*\*
-
+**BORRAR TODO y escribir:**
 ```
-
 127.0.0.1       localhost
-
 127.0.1.1       bespin02.cloud02.city bespin02
 
-
-
-\# IP privada de esta instancia (CAMBIAR por la tuya)
-
+# IP privada de esta instancia (CAMBIAR por la tuya)
 10.0.1.229      bespin02.cloud02.city bespin02
-
 ```
 
+**⚠️ CAMBIAR `10.0.1.229` por TU IP privada de Ubuntu.**
 
-
-\*\*⚠️ CAMBIAR `10.0.1.229` por TU IP privada de Ubuntu.\*\*
-
-
-
-\*\*Guardar:\*\*
-
+**Guardar:**
 ```
-
 Ctrl + O
-
 Enter
-
 Ctrl + X
-
 ```
-
-
 
 ---
 
-
-
-\### Paso 19: Deshabilitar systemd-resolved
-
-
+### Paso 19: Deshabilitar systemd-resolved
 
 ```bash
-
 sudo systemctl disable --now systemd-resolved
-
 sudo unlink /etc/resolv.conf
-
 ```
-
-
 
 ---
 
-
-
-\### Paso 20: Crear /etc/resolv.conf manual
-
-
+### Paso 20: Crear /etc/resolv.conf manual
 
 ```bash
-
 sudo nano /etc/resolv.conf
-
 ```
 
-
-
-\*\*Escribir:\*\*
-
+**Escribir:**
 ```
-
 nameserver 127.0.0.1
-
 nameserver 8.8.8.8
-
 search cloud02.city
-
 ```
 
+**Guardar:** Ctrl+O, Enter, Ctrl+X
 
-
-\*\*Guardar:\*\* Ctrl+O, Enter, Ctrl+X
-
-
-
-\*\*Hacer inmutable:\*\*
-
+**Hacer inmutable:**
 ```bash
-
 sudo chattr +i /etc/resolv.conf
-
 ```
-
-
 
 ---
 
-
-
-\### Paso 21: Instalar Samba y dependencias
-
-
+### Paso 21: Instalar Samba y dependencias
 
 ```bash
-
 sudo apt install -y samba smbclient winbind krb5-user krb5-config
-
 ```
 
+**Durante instalación, aparecen ventanas de Kerberos:**
 
-
-\*\*Durante instalación, aparecen ventanas de Kerberos:\*\*
-
-
-
-\*\*Pantalla 1: Default Kerberos realm\*\*
-
+**Pantalla 1: Default Kerberos realm**
 ```
-
 Escribir: CLOUD02.CITY
-
 Tab → Ok → Enter
-
 ```
 
-
-
-\*\*Pantalla 2: Kerberos servers\*\*
-
+**Pantalla 2: Kerberos servers**
 ```
-
 Escribir: bespin02.cloud02.city
-
 Tab → Ok → Enter
-
 ```
 
-
-
-\*\*Pantalla 3: Administrative server\*\*
-
+**Pantalla 3: Administrative server**
 ```
-
 Escribir: bespin02.cloud02.city
-
 Tab → Ok → Enter
-
 ```
-
-
 
 ---
 
-
-
-\### Paso 22: Detener servicios Samba por defecto
-
-
+### Paso 22: Detener servicios Samba por defecto
 
 ```bash
-
 sudo systemctl stop smbd nmbd winbind
-
 sudo systemctl disable smbd nmbd winbind
-
 ```
 
-
-
-\*\*Respaldar smb.conf (si existe):\*\*
-
+**Respaldar smb.conf (si existe):**
 ```bash
-
 sudo mv /etc/samba/smb.conf /etc/samba/smb.conf.bak 2>/dev/null || true
-
 ```
-
-
 
 ---
 
-
-
-\### Paso 23: PROVISION DEL DOMINIO (MUY IMPORTANTE)
-
-
+### Paso 23: PROVISION DEL DOMINIO (MUY IMPORTANTE)
 
 ```bash
-
 sudo samba-tool domain provision --use-rfc2307 --interactive
-
 ```
 
-
-
-\*\*Responder EXACTAMENTE así:\*\*
-
-
+**Responder EXACTAMENTE así:**
 
 ```
-
-Realm \[CLOUD02.CITY]:
-
+Realm [CLOUD02.CITY]:
 → Presionar Enter (acepta CLOUD02.CITY)
 
-
-
-Domain \[CLOUD02]:
-
+Domain [CLOUD02]:
 → Escribir: BESPIN02
-
 → Presionar Enter
 
-
-
-Server Role (dc, member, standalone) \[dc]:
-
+Server Role (dc, member, standalone) [dc]:
 → Presionar Enter (acepta dc)
 
+DNS backend (SAMBA_INTERNAL, BIND9_FLATFILE, BIND9_DLZ, NONE) [SAMBA_INTERNAL]:
+→ Presionar Enter (acepta SAMBA_INTERNAL)
 
-
-DNS backend (SAMBA\_INTERNAL, BIND9\_FLATFILE, BIND9\_DLZ, NONE) \[SAMBA\_INTERNAL]:
-
-→ Presionar Enter (acepta SAMBA\_INTERNAL)
-
-
-
-DNS forwarder IP address (write 'none' to disable forwarding) \[127.0.0.53]:
-
+DNS forwarder IP address (write 'none' to disable forwarding) [127.0.0.53]:
 → Escribir: 8.8.8.8
-
 → Presionar Enter
-
-
 
 Administrator password:
-
 → Escribir: Admin123!
-
 → Presionar Enter (NO SE VE mientras escribes)
 
-
-
 Retype password:
-
 → Escribir: Admin123! (de nuevo)
-
 → Presionar Enter
-
 ```
 
+**Espera 10-30 segundos.**
 
-
-\*\*Espera 10-30 segundos.\*\*
-
-
-
-\*\*Debe decir:\*\*
-
+**Debe decir:**
 ```
-
 Provision OK for domain DN DC=cloud02,DC=city
-
 ```
 
-
-
-✅ \*\*Si ves "Provision OK", está bien.\*\*
-
-
+✅ **Si ves "Provision OK", está bien.**
 
 ---
 
-
-
-\### Paso 24: Copiar krb5.conf e iniciar Samba
-
-
+### Paso 24: Copiar krb5.conf e iniciar Samba
 
 ```bash
-
-\# Copiar configuración Kerberos
-
+# Copiar configuración Kerberos
 sudo cp /var/lib/samba/private/krb5.conf /etc/krb5.conf
 
-
-
-\# Iniciar Samba AD DC
-
+# Iniciar Samba AD DC
 sudo systemctl unmask samba-ad-dc
-
 sudo systemctl start samba-ad-dc
-
 sudo systemctl enable samba-ad-dc
-
 ```
 
-
-
-\*\*Verificar estado:\*\*
-
+**Verificar estado:**
 ```bash
-
 sudo systemctl status samba-ad-dc
-
 ```
-
-
 
 Debe mostrar: `Active: active (running)` en verde.
 
-
-
-\*\*Presionar `q` para salir.\*\*
-
-
+**Presionar `q` para salir.**
 
 ---
 
-
-
-\### Paso 25: Verificar DNS y Kerberos
-
-
+### Paso 25: Verificar DNS y Kerberos
 
 ```bash
-
-\# Verificar DNS
-
+# Verificar DNS
 host cloud02.city
-
 ```
-
-\*\*Debe responder:\*\* `cloud02.city has address 10.0.1.229`
-
-
+**Debe responder:** `cloud02.city has address 10.0.1.229`
 
 ```bash
-
 host bespin02.cloud02.city
-
 ```
-
-\*\*Debe responder:\*\* `bespin02.cloud02.city has address 10.0.1.229`
-
-
+**Debe responder:** `bespin02.cloud02.city has address 10.0.1.229`
 
 ```bash
-
-host -t SRV \_ldap.\_tcp.cloud02.city
-
+host -t SRV _ldap._tcp.cloud02.city
 ```
-
-\*\*Debe responder:\*\* `\_ldap.\_tcp.cloud02.city has SRV record 0 100 389 bespin02.cloud02.city.`
-
-
+**Debe responder:** `_ldap._tcp.cloud02.city has SRV record 0 100 389 bespin02.cloud02.city.`
 
 ---
 
-
-
 ```bash
-
-\# Verificar Kerberos
-
+# Verificar Kerberos
 kinit Administrator
-
 ```
 
-
-
-\*\*Pide contraseña:\*\*
-
+**Pide contraseña:**
 ```
-
 Password for Administrator@CLOUD02.CITY:
-
 → Escribir: Admin123!
-
 → Presionar Enter
-
 ```
 
-
-
-\*\*No muestra nada si salió bien.\*\*
-
-
+**No muestra nada si salió bien.**
 
 ```bash
-
 klist
-
 ```
 
-
-
-\*\*Debe mostrar:\*\*
-
+**Debe mostrar:**
 ```
-
-Ticket cache: FILE:/tmp/krb5cc\_1000
-
+Ticket cache: FILE:/tmp/krb5cc_1000
 Default principal: Administrator@CLOUD02.CITY
-
 ```
 
-
-
-✅ \*\*Si todo esto funciona, el dominio está OK.\*\*
-
-
+✅ **Si todo esto funciona, el dominio está OK.**
 
 ---
 
+## 👥 PARTE 6: CREAR USUARIOS Y CARPETAS
 
-
-\## 👥 PARTE 6: CREAR USUARIOS Y CARPETAS
-
-
-
-\### Paso 26: Crear usuarios lando y boba
-
-
+### Paso 26: Crear usuarios lando y boba
 
 ```bash
-
-\# Crear usuario lando
-
+# Crear usuario lando
 sudo samba-tool user create lando Admin123! --given-name="Lando" --surname="Calrissian"
 
-
-
-\# Crear usuario boba
-
+# Crear usuario boba
 sudo samba-tool user create boba Admin123! --given-name="Boba" --surname="Fett"
-
 ```
 
-
-
-\*\*Verificar:\*\*
-
+**Verificar:**
 ```bash
-
 sudo samba-tool user list
-
 ```
-
-
 
 Debe mostrar:
-
 ```
-
 Administrator
-
 krbtgt
-
 lando
-
 boba
-
 ```
-
-
 
 ---
 
-
-
-\### Paso 27: Crear estructura de carpetas
-
-
+### Paso 27: Crear estructura de carpetas
 
 ```bash
-
-\# Crear carpetas
-
+# Crear carpetas
 sudo mkdir -p /city/trap
 
-
-
-\# Permisos base (temporales, Samba controlará el acceso real)
-
+# Permisos base (temporales, Samba controlará el acceso real)
 sudo chmod 777 /city/trap
-
 ```
-
-
 
 ---
 
-
-
-\### Paso 28: Configurar recurso compartido en smb.conf
-
-
+### Paso 28: Configurar recurso compartido en smb.conf
 
 ```bash
-
 sudo nano /etc/samba/smb.conf
-
 ```
 
-
-
-\*\*Ir al final del archivo (Ctrl+V varias veces) y añadir:\*\*
-
-
+**Ir al final del archivo (Ctrl+V varias veces) y añadir:**
 
 ```ini
-
-\[trap]
-
-&nbsp;   path = /city/trap
-
-&nbsp;   read only = no
-
-&nbsp;   valid users = lando
-
-&nbsp;   vfs objects = acl\_xattr
-
-&nbsp;   map acl inherit = yes
-
+[trap]
+    path = /city/trap
+    read only = no
+    valid users = lando
+    vfs objects = acl_xattr
+    map acl inherit = yes
 ```
 
+**⚠️ IMPORTANTE:** `valid users = lando` significa que SOLO lando puede acceder.
 
-
-\*\*⚠️ IMPORTANTE:\*\* `valid users = lando` significa que SOLO lando puede acceder.
-
-
-
-\*\*Guardar:\*\* Ctrl+O, Enter, Ctrl+X
-
-
+**Guardar:** Ctrl+O, Enter, Ctrl+X
 
 ---
 
-
-
-\*\*Recargar configuración:\*\*
-
+**Recargar configuración:**
 ```bash
-
 sudo smbcontrol all reload-config
-
 ```
 
-
-
-\*\*Verificar sintaxis:\*\*
-
+**Verificar sintaxis:**
 ```bash
-
 sudo testparm
-
 ```
-
-
 
 Debe decir: `Loaded services file OK.`
 
-
-
 ---
 
-
-
-\### Paso 29: Verificar recurso compartido
-
-
+### Paso 29: Verificar recurso compartido
 
 ```bash
-
 sudo smbclient -L localhost -U Administrator%Admin123!
-
 ```
 
-
-
-\*\*Debe mostrar:\*\*
-
+**Debe mostrar:**
 ```
-
 Sharename       Type      Comment
-
 ---------       ----      -------
-
 trap            Disk
-
 netlogon        Disk
-
 sysvol          Disk
-
 ```
-
-
 
 ✅ El recurso `trap` está configurado.
 
-
-
 ---
 
+## 🔗 PARTE 7: CONECTAR POR RDP AL WINDOWS
 
+### Paso 30: Instalar FreeRDP (si no lo tienes)
 
-\## 🔗 PARTE 7: CONECTAR POR RDP AL WINDOWS
-
-
-
-\### Paso 30: Instalar FreeRDP (si no lo tienes)
-
-
-
-\*\*En tu terminal LOCAL (no en el SSH):\*\*
-
-
+**En tu terminal LOCAL (no en el SSH):**
 
 ```bash
-
-\# Abrir nueva terminal (Ctrl+Alt+T)
-
+# Abrir nueva terminal (Ctrl+Alt+T)
 sudo apt update
-
 sudo apt install -y freerdp2-x11
-
 ```
-
-
 
 ---
 
-
-
-\### Paso 31: Conectar por RDP
-
-
+### Paso 31: Conectar por RDP
 
 ```bash
-
-xfreerdp /v:54.221.100.222 \\
-
-&nbsp;        /u:Administrator \\
-
-&nbsp;        /p:'xY9!mK2@pL5#qR8' \\
-
-&nbsp;        /cert:ignore \\
-
-&nbsp;        /dynamic-resolution \\
-
-&nbsp;        /clipboard
-
+xfreerdp /v:54.221.100.222 \
+         /u:Administrator \
+         /p:'xY9!mK2@pL5#qR8' \
+         /cert:ignore \
+         /dynamic-resolution \
+         /clipboard
 ```
 
+**CAMBIAR:**
+- `54.221.100.222` → Tu Elastic IP de Windows
+- `xY9!mK2@pL5#qR8` → Tu contraseña de Windows
 
-
-\*\*CAMBIAR:\*\*
-
-\- `54.221.100.222` → Tu Elastic IP de Windows
-
-\- `xY9!mK2@pL5#qR8` → Tu contraseña de Windows
-
-
-
-\*\*Se abre ventana de escritorio de Windows.\*\*
-
-
+**Se abre ventana de escritorio de Windows.**
 
 ---
 
+### Paso 32: Configurar Windows (primera vez)
 
-
-\### Paso 32: Configurar Windows (primera vez)
-
-
-
-\*\*Abrir PowerShell como Administrator:\*\*
-
+**Abrir PowerShell como Administrator:**
 ```
-
 Clic derecho en Inicio → Windows PowerShell (Admin)
-
 ```
 
-
-
-\*\*Cambiar contraseña a algo simple:\*\*
-
+**Cambiar contraseña a algo simple:**
 ```powershell
-
 net user Administrator Admin123!
-
 ```
 
-
-
-\*\*Configurar teclado español:\*\*
-
+**Configurar teclado español:**
 ```powershell
-
 Set-WinUserLanguageList -LanguageList es-ES -Force
-
 ```
 
-
-
-\*\*Permitir ping:\*\*
-
+**Permitir ping:**
 ```powershell
-
 netsh advfirewall firewall add rule name="ICMP Allow" protocol=icmpv4:8,any dir=in action=allow
-
 ```
 
-
-
-\*\*Cerrar sesión RDP:\*\*
-
+**Cerrar sesión RDP:**
 ```
-
 Inicio → Icono usuario → Sign out
-
 ```
-
-
 
 ---
 
-
-
-\### Paso 33: Reconectar con nueva contraseña
-
-
+### Paso 33: Reconectar con nueva contraseña
 
 ```bash
-
-xfreerdp /v:54.221.100.222 \\
-
-&nbsp;        /u:Administrator \\
-
-&nbsp;        /p:'Admin123!' \\
-
-&nbsp;        /cert:ignore \\
-
-&nbsp;        /dynamic-resolution \\
-
-&nbsp;        /clipboard
-
+xfreerdp /v:54.221.100.222 \
+         /u:Administrator \
+         /p:'Admin123!' \
+         /cert:ignore \
+         /dynamic-resolution \
+         /clipboard
 ```
-
-
 
 ---
 
+## 🌐 PARTE 8: CONFIGURAR WINDOWS PARA EL DOMINIO
 
+### Paso 34: Añadir servidor Ubuntu al hosts de Windows
 
-\## 🌐 PARTE 8: CONFIGURAR WINDOWS PARA EL DOMINIO
-
-
-
-\### Paso 34: Añadir servidor Ubuntu al hosts de Windows
-
-
-
-\*\*En Windows (RDP), abrir Notepad como Administrator:\*\*
-
-
+**En Windows (RDP), abrir Notepad como Administrator:**
 
 ```
-
 Inicio → Buscar: notepad
-
 Clic derecho en Notepad → Run as administrator
-
 File → Open
-
-Navegar a: C:\\Windows\\System32\\drivers\\etc\\
-
+Navegar a: C:\Windows\System32\drivers\etc\
 Cambiar filtro de "Text Documents" a "All Files"
-
 Abrir: hosts
-
 ```
 
-
-
-\*\*Añadir al final:\*\*
-
+**Añadir al final:**
 ```
-
 10.0.1.229      bespin02.cloud02.city bespin02 cloud02.city
-
 ```
 
+**⚠️ CAMBIAR `10.0.1.229` por TU IP privada de Ubuntu.**
 
+**Guardar:** File → Save
 
-\*\*⚠️ CAMBIAR `10.0.1.229` por TU IP privada de Ubuntu.\*\*
-
-
-
-\*\*Guardar:\*\* File → Save
-
-
-
-\*\*Cerrar Notepad.\*\*
-
-
+**Cerrar Notepad.**
 
 ---
 
+### Paso 35: Configurar DNS en Windows
 
-
-\### Paso 35: Configurar DNS en Windows
-
-
-
-\*\*Abrir PowerShell como Administrator:\*\*
-
-
+**Abrir PowerShell como Administrator:**
 
 ```powershell
-
-\# Ver adaptadores de red
-
+# Ver adaptadores de red
 Get-NetAdapter
-
 ```
-
-
 
 Debe mostrar algo como:
-
 ```
-
 Name                      InterfaceDescription
-
 ----                      --------------------
-
 Ethernet                  AWS PV Network Device
-
 ```
 
-
-
-\*\*Configurar DNS:\*\*
-
+**Configurar DNS:**
 ```powershell
-
 Set-DnsClientServerAddress -InterfaceAlias "Ethernet" -ServerAddresses ("10.0.1.229","8.8.8.8")
-
 ```
 
+**⚠️ CAMBIAR `10.0.1.229` por TU IP privada de Ubuntu.**
 
-
-\*\*⚠️ CAMBIAR `10.0.1.229` por TU IP privada de Ubuntu.\*\*
-
-
-
-\*\*Verificar:\*\*
-
+**Verificar:**
 ```powershell
-
 Get-DnsClientServerAddress -InterfaceAlias "Ethernet" -AddressFamily IPv4
-
 ```
-
-
 
 Debe mostrar tu IP privada de Ubuntu como DNS primario.
 
-
-
 ---
 
-
-
-\### Paso 36: Verificar conectividad y DNS
-
-
+### Paso 36: Verificar conectividad y DNS
 
 ```powershell
-
-\# Ping al servidor Ubuntu
-
+# Ping al servidor Ubuntu
 ping 10.0.1.229
 
+# Debe responder
 
-
-\# Debe responder
-
-
-
-\# Resolver DNS
-
+# Resolver DNS
 nslookup cloud02.city
 
-
-
-\# Debe resolver a la IP privada de Ubuntu
-
+# Debe resolver a la IP privada de Ubuntu
 ```
-
-
 
 ✅ Si ambos funcionan, continúa.
 
-
-
 ---
 
+### Paso 37: Unir Windows al dominio
 
-
-\### Paso 37: Unir Windows al dominio
-
-
-
-\*\*Opción 1: Desde PowerShell (más rápido):\*\*
-
-
+**Opción 1: Desde PowerShell (más rápido):**
 
 ```powershell
-
-Add-Computer -DomainName cloud02.city -Credential BESPIN02\\Administrator -Restart
-
+Add-Computer -DomainName cloud02.city -Credential BESPIN02\Administrator -Restart
 ```
 
-
-
-\*\*Pide contraseña:\*\*
-
+**Pide contraseña:**
 ```
-
-Password for BESPIN02\\Administrator:
-
+Password for BESPIN02\Administrator:
 → Escribir: Admin123!
-
 ```
-
-
 
 El Windows se reiniciará automáticamente.
 
-
-
 ---
 
-
-
-\*\*Opción 2: Desde GUI:\*\*
-
-
+**Opción 2: Desde GUI:**
 
 ```
-
 Inicio → Buscar: "This PC"
-
 Clic derecho → Properties
-
 "Rename this PC (advanced)"
-
 Clic en "Change..."
-
 Seleccionar "Domain"
-
 Escribir: cloud02.city
-
 OK
-
 Usuario: Administrator
-
 Contraseña: Admin123!
-
 OK → Restart Now
-
 ```
 
+---
 
+**Espera 2-3 minutos a que reinicie.**
 
 ---
 
+### Paso 38: Reconectar y verificar
 
-
-\*\*Espera 2-3 minutos a que reinicie.\*\*
-
-
-
----
-
-
-
-\### Paso 38: Reconectar y verificar
-
-
-
-\*\*Reconectar por RDP:\*\*
-
+**Reconectar por RDP:**
 ```bash
-
 xfreerdp /v:54.221.100.222 /u:Administrator /p:'Admin123!' /cert:ignore /dynamic-resolution /clipboard
-
 ```
 
-
-
-\*\*Verificar en PowerShell:\*\*
-
+**Verificar en PowerShell:**
 ```powershell
-
 systeminfo | findstr /B /C:"Domain"
-
 ```
-
-
 
 Debe mostrar:
-
 ```
-
 Domain: cloud02.city
-
 ```
-
-
 
 ✅ Windows unido correctamente al dominio.
 
-
-
 ---
 
+## 📁 PARTE 9: PROBAR ACCESO A LA CARPETA TRAP
 
-
-\## 📁 PARTE 9: PROBAR ACCESO A LA CARPETA TRAP
-
-
-
-\### Paso 39: Cerrar sesión de Administrator
-
-
+### Paso 39: Cerrar sesión de Administrator
 
 ```
-
 En Windows (RDP):
-
 Inicio → Icono usuario → Sign out
-
 ```
-
-
 
 ---
 
+### Paso 40: Iniciar sesión como lando
 
-
-\### Paso 40: Iniciar sesión como lando
-
-
-
-\*\*En la pantalla de login:\*\*
-
+**En la pantalla de login:**
 ```
-
 Clic en "Other user"
-
-Usuario: BESPIN02\\lando
-
+Usuario: BESPIN02\lando
 Contraseña: Admin123!
-
 ```
 
-
-
-\*\*Primera vez tarda 1-2 minutos (crea perfil).\*\*
-
-
+**Primera vez tarda 1-2 minutos (crea perfil).**
 
 ---
 
+### Paso 41: Acceder al recurso compartido trap
 
+**Abrir Explorador de archivos (Windows + E)**
 
-\### Paso 41: Acceder al recurso compartido trap
-
-
-
-\*\*Abrir Explorador de archivos (Windows + E)\*\*
-
-
-
-\*\*En la barra de direcciones, escribir:\*\*
-
+**En la barra de direcciones, escribir:**
+```
+\\bespin02.cloud02.city\trap
 ```
 
-\\\\bespin02.cloud02.city\\trap
-
+**O usando IP privada:**
+```
+\\10.0.1.229\trap
 ```
 
-
-
-\*\*O usando IP privada:\*\*
-
-```
-
-\\\\10.0.1.229\\trap
-
-```
-
-
-
-✅ \*\*DEBE ABRIR\*\* la carpeta trap (lando tiene acceso).
-
-
+✅ **DEBE ABRIR** la carpeta trap (lando tiene acceso).
 
 ---
 
+### Paso 42: Crear directorio con iniciales CB
 
-
-\### Paso 42: Crear directorio con iniciales CB
-
-
-
-\*\*Dentro de la carpeta trap:\*\*
-
+**Dentro de la carpeta trap:**
 ```
-
 Clic derecho → New → Folder
-
 Nombre: CB
-
 Enter
-
 ```
 
-
-
-\*\*Entrar a la carpeta CB:\*\*
-
+**Entrar a la carpeta CB:**
 ```
-
 Doble clic en CB
-
 ```
 
-
-
-\*\*Crear archivo de prueba:\*\*
-
+**Crear archivo de prueba:**
 ```
-
 Clic derecho → New → Text Document
-
 Nombre: prueba.txt
-
 Abrir y escribir: "Acceso OK - Lando"
-
 Guardar y cerrar
-
 ```
-
-
 
 ✅ lando puede crear carpetas y archivos.
 
-
-
 ---
 
-
-
-\### Paso 43: Cerrar sesión de lando y probar con boba
-
-
+### Paso 43: Cerrar sesión de lando y probar con boba
 
 ```
-
 Inicio → Icono usuario → Sign out
-
 ```
 
-
-
-\*\*Iniciar sesión como boba:\*\*
-
+**Iniciar sesión como boba:**
 ```
-
 Other user
-
-Usuario: BESPIN02\\boba
-
+Usuario: BESPIN02\boba
 Contraseña: Admin123!
-
 ```
-
-
 
 ---
 
+### Paso 44: Intentar acceder a trap como boba
 
+**Explorador de archivos (Windows + E)**
 
-\### Paso 44: Intentar acceder a trap como boba
-
-
-
-\*\*Explorador de archivos (Windows + E)\*\*
-
-
-
-\*\*Escribir en barra de direcciones:\*\*
-
+**Escribir en barra de direcciones:**
+```
+\\bespin02.cloud02.city\trap
 ```
 
-\\\\bespin02.cloud02.city\\trap
+❌ **DEBE DENEGAR ACCESO**
 
+**Debe mostrar:**
 ```
-
-
-
-❌ \*\*DEBE DENEGAR ACCESO\*\*
-
-
-
-\*\*Debe mostrar:\*\*
-
-```
-
-Windows cannot access \\\\bespin02.cloud02.city\\trap
-
+Windows cannot access \\bespin02.cloud02.city\trap
 You do not have permission to access...
-
 ```
 
-
-
-✅ \*\*Correcto - boba NO tiene acceso.\*\*
-
-
+✅ **Correcto - boba NO tiene acceso.**
 
 ---
 
+## ✅ VERIFICACIÓN FINAL COMPLETA
 
-
-\## ✅ VERIFICACIÓN FINAL COMPLETA
-
-
-
-\### En el servidor Ubuntu (SSH):
-
-
+### En el servidor Ubuntu (SSH):
 
 ```bash
-
-\# 1. Samba funcionando
-
+# 1. Samba funcionando
 sudo systemctl status samba-ad-dc | grep Active
 
-
-
-\# 2. Usuarios creados
-
+# 2. Usuarios creados
 sudo samba-tool user list
 
-
-
-\# 3. Carpeta existe
-
+# 3. Carpeta existe
 ls -la /city/trap/
 
-
-
-\# 4. Carpeta CB creada por lando
-
+# 4. Carpeta CB creada por lando
 ls -la /city/trap/CB/
 
-
-
-\# 5. DNS funciona
-
+# 5. DNS funciona
 host cloud02.city
 
-
-
-\# 6. Recurso compartido configurado
-
-sudo testparm -s | grep -A 5 "\\\[trap\\]"
-
+# 6. Recurso compartido configurado
+sudo testparm -s | grep -A 5 "\[trap\]"
 ```
-
-
 
 ---
 
-
-
-\### En Windows (como lando):
-
-
+### En Windows (como lando):
 
 ```
-
-1\. Iniciar sesión: BESPIN02\\lando / Admin123!
-
-2\. Acceder a: \\\\bespin02.cloud02.city\\trap → ✅ Abre
-
-3\. Ver carpeta CB → ✅ Existe
-
-4\. Ver archivo prueba.txt → ✅ Existe
-
+1. Iniciar sesión: BESPIN02\lando / Admin123!
+2. Acceder a: \\bespin02.cloud02.city\trap → ✅ Abre
+3. Ver carpeta CB → ✅ Existe
+4. Ver archivo prueba.txt → ✅ Existe
 ```
-
-
 
 ---
 
-
-
-\### En Windows (como boba):
-
-
+### En Windows (como boba):
 
 ```
-
-1\. Iniciar sesión: BESPIN02\\boba / Admin123!
-
-2\. Intentar acceder: \\\\bespin02.cloud02.city\\trap → ❌ Denegado
-
+1. Iniciar sesión: BESPIN02\boba / Admin123!
+2. Intentar acceder: \\bespin02.cloud02.city\trap → ❌ Denegado
 ```
-
-
 
 ---
 
-
-
-\## 📊 RESUMEN DE CONFIGURACIÓN
-
-
+## 📊 RESUMEN DE CONFIGURACIÓN
 
 | Elemento | Valor |
-
 |----------|-------|
-
-| \*\*Dominio\*\* | cloud02.city |
-
-| \*\*NetBIOS Name\*\* | BESPIN02 |
-
-| \*\*DC Hostname\*\* | bespin02.cloud02.city |
-
-| \*\*IP Privada Ubuntu\*\* | 10.0.X.X (depende de AWS) |
-
-| \*\*Contraseña Administrator\*\* | Admin123! |
-
-| \*\*Usuario con acceso\*\* | lando |
-
-| \*\*Usuario denegado\*\* | boba |
-
-| \*\*Carpeta compartida\*\* | /city/trap |
-
-| \*\*Recurso SMB\*\* | \\\\bespin02.cloud02.city\\trap |
-
-| \*\*Carpeta creada\*\* | CB (iniciales Cristian BR) |
-
-
+| **Dominio** | cloud02.city |
+| **NetBIOS Name** | BESPIN02 |
+| **DC Hostname** | bespin02.cloud02.city |
+| **IP Privada Ubuntu** | 10.0.X.X (depende de AWS) |
+| **Contraseña Administrator** | Admin123! |
+| **Usuario con acceso** | lando |
+| **Usuario denegado** | boba |
+| **Carpeta compartida** | /city/trap |
+| **Recurso SMB** | \\bespin02.cloud02.city\trap |
+| **Carpeta creada** | CB (iniciales Cristian BR) |
 
 ---
 
+## 🛠️ TROUBLESHOOTING
 
+### Windows no puede unirse al dominio
 
-\## 🛠️ TROUBLESHOOTING
-
-
-
-\### Windows no puede unirse al dominio
-
-
-
-\*\*Verificar DNS en Windows:\*\*
-
+**Verificar DNS en Windows:**
 ```powershell
-
 ipconfig /all
-
 ```
-
-
 
 El DNS primario debe ser la IP privada de Ubuntu.
 
-
-
-\*\*Probar resolución:\*\*
-
+**Probar resolución:**
 ```powershell
-
 nslookup cloud02.city
-
 ```
-
-
 
 Debe resolver a la IP privada de Ubuntu.
 
-
-
 ---
 
+### No puedo acceder a \\bespin02.cloud02.city\trap
 
-
-\### No puedo acceder a \\\\bespin02.cloud02.city\\trap
-
-
-
-\*\*Verificar en Ubuntu:\*\*
-
+**Verificar en Ubuntu:**
 ```bash
-
-\# Samba corriendo
-
+# Samba corriendo
 sudo systemctl status samba-ad-dc
 
-
-
-\# Recurso configurado
-
+# Recurso configurado
 sudo testparm -s | grep trap
 
-
-
-\# Usuario lando existe
-
+# Usuario lando existe
 sudo samba-tool user show lando
-
 ```
 
-
-
-\*\*Verificar en Windows:\*\*
-
+**Verificar en Windows:**
 ```powershell
-
-\# Ping al servidor
-
+# Ping al servidor
 ping 10.0.1.229
 
-
-
-\# Puerto SMB abierto
-
+# Puerto SMB abierto
 Test-NetConnection -ComputerName 10.0.1.229 -Port 445
 
-
-
-\# Listar recursos
-
-net view \\\\10.0.1.229
-
+# Listar recursos
+net view \\10.0.1.229
 ```
-
-
 
 ---
 
+### RDP no conecta
 
+**Verificar:**
+1. Elastic IP correcta
+2. Security group tiene puerto 3389 abierto
+3. Contraseña sin espacios extra
+4. Instancia Windows está Running
 
-\### RDP no conecta
-
-
-
-\*\*Verificar:\*\*
-
-1\. Elastic IP correcta
-
-2\. Security group tiene puerto 3389 abierto
-
-3\. Contraseña sin espacios extra
-
-4\. Instancia Windows está Running
-
-
-
-\*\*Probar:\*\*
-
+**Probar:**
 ```bash
-
-nc -zv ELASTIC\_IP 3389
-
+nc -zv ELASTIC_IP 3389
 ```
 
-
-
-Debe decir: `Connection to ... 3389 port \[tcp/ms-wbt-server] succeeded!`
-
-
+Debe decir: `Connection to ... 3389 port [tcp/ms-wbt-server] succeeded!`
 
 ---
 
+### La IP privada cambió
 
+**Si paras y arrancas las instancias:**
+- Elastic IPs NO cambian ✅
+- IPs privadas SÍ cambian ❌
 
-\### La IP privada cambió
-
-
-
-\*\*Si paras y arrancas las instancias:\*\*
-
-\- Elastic IPs NO cambian ✅
-
-\- IPs privadas SÍ cambian ❌
-
-
-
-\*\*Solución:\*\*
-
-1\. Ver nueva IP privada en EC2 → Instances → Details
-
-2\. Actualizar /etc/hosts en Ubuntu
-
-3\. Actualizar DNS en Windows
-
-4\. Actualizar hosts en Windows
-
-
+**Solución:**
+1. Ver nueva IP privada en EC2 → Instances → Details
+2. Actualizar /etc/hosts en Ubuntu
+3. Actualizar DNS en Windows
+4. Actualizar hosts en Windows
 
 ---
 
+## 🎯 CHECKLIST FINAL PARA EL EXAMEN
 
+**Antes del examen:**
+- [ ] Sé cómo entrar a AWS Academy
+- [ ] Sé descargar labsuser.pem
+- [ ] Sé crear Security Group con todos los puertos
+- [ ] Sé lanzar instancia Ubuntu
+- [ ] Sé lanzar instancia Windows
+- [ ] Sé asignar Elastic IPs
+- [ ] Sé obtener contraseña de Windows
+- [ ] Sé conectar por SSH
+- [ ] Sé conectar por RDP con xfreerdp
 
-\## 🎯 CHECKLIST FINAL PARA EL EXAMEN
+**Durante el examen:**
+- [ ] Anotar todas las IPs (pública, privada, Elastic)
+- [ ] Anotar contraseña de Windows
+- [ ] Seguir pasos en orden
+- [ ] Verificar cada paso antes de continuar
+- [ ] Provision con dominio CORRECTO (cloudXX.city)
+- [ ] NetBIOS Name correcto (BespinXX)
+- [ ] Crear usuarios lando y boba
+- [ ] Configurar recurso trap solo para lando
+- [ ] Crear carpeta con iniciales
+- [ ] Probar acceso con ambos usuarios
 
-
-
-\*\*Antes del examen:\*\*
-
-\- \[ ] Sé cómo entrar a AWS Academy
-
-\- \[ ] Sé descargar labsuser.pem
-
-\- \[ ] Sé crear Security Group con todos los puertos
-
-\- \[ ] Sé lanzar instancia Ubuntu
-
-\- \[ ] Sé lanzar instancia Windows
-
-\- \[ ] Sé asignar Elastic IPs
-
-\- \[ ] Sé obtener contraseña de Windows
-
-\- \[ ] Sé conectar por SSH
-
-\- \[ ] Sé conectar por RDP con xfreerdp
-
-
-
-\*\*Durante el examen:\*\*
-
-\- \[ ] Anotar todas las IPs (pública, privada, Elastic)
-
-\- \[ ] Anotar contraseña de Windows
-
-\- \[ ] Seguir pasos en orden
-
-\- \[ ] Verificar cada paso antes de continuar
-
-\- \[ ] Provision con dominio CORRECTO (cloudXX.city)
-
-\- \[ ] NetBIOS Name correcto (BespinXX)
-
-\- \[ ] Crear usuarios lando y boba
-
-\- \[ ] Configurar recurso trap solo para lando
-
-\- \[ ] Crear carpeta con iniciales
-
-\- \[ ] Probar acceso con ambos usuarios
-
-
-
-\*\*Verificación final:\*\*
-
-\- \[ ] lando puede acceder a trap
-
-\- \[ ] boba NO puede acceder a trap
-
-\- \[ ] Carpeta CB existe dentro de trap
-
-\- \[ ] Archivo de prueba existe
-
-
+**Verificación final:**
+- [ ] lando puede acceder a trap
+- [ ] boba NO puede acceder a trap
+- [ ] Carpeta CB existe dentro de trap
+- [ ] Archivo de prueba existe
 
 ---
 
-
-
-\## ⏱️ ESTIMACIÓN DE TIEMPO
-
-
+## ⏱️ ESTIMACIÓN DE TIEMPO
 
 | Tarea | Tiempo estimado |
-
 |-------|-----------------|
-
 | Iniciar AWS y descargar claves | 2 min |
-
 | Crear Security Group | 5 min |
-
 | Crear instancia Ubuntu | 3 min |
-
 | Crear instancia Windows | 3 min |
-
 | Asignar Elastic IPs | 3 min |
-
 | Obtener contraseña Windows | 2 min |
-
 | Configurar Ubuntu (provision) | 15 min |
-
 | Crear usuarios y carpetas | 3 min |
-
 | Configurar smb.conf | 3 min |
-
 | Conectar por RDP | 2 min |
-
 | Configurar Windows | 5 min |
-
 | Unir Windows al dominio | 5 min |
-
 | Probar accesos | 5 min |
+| **TOTAL** | **~56 min** |
 
-| \*\*TOTAL\*\* | \*\*~56 min\*\* |
-
-
-
-\*\*⏰ Tiempo de margen:\*\* Tienes tiempo de sobra si sigues los pasos.
-
-
+**⏰ Tiempo de margen:** Tienes tiempo de sobra si sigues los pasos.
 
 ---
 
+## 🎯 COMANDOS CLAVE RÁPIDOS
 
-
-\## 🎯 COMANDOS CLAVE RÁPIDOS
-
-
-
-\*\*SSH al Ubuntu:\*\*
-
+**SSH al Ubuntu:**
 ```bash
-
-ssh -i ~/.ssh/labsuser.pem ubuntu@ELASTIC\_IP
-
+ssh -i ~/.ssh/labsuser.pem ubuntu@ELASTIC_IP
 ```
 
-
-
-\*\*Provision del dominio:\*\*
-
+**Provision del dominio:**
 ```bash
-
 sudo samba-tool domain provision --use-rfc2307 --interactive
-
-\# Realm: CLOUD02.CITY
-
-\# Domain: BESPIN02
-
-\# DNS forwarder: 8.8.8.8
-
-\# Password: Admin123!
-
+# Realm: CLOUD02.CITY
+# Domain: BESPIN02
+# DNS forwarder: 8.8.8.8
+# Password: Admin123!
 ```
 
-
-
-\*\*Crear usuarios:\*\*
-
+**Crear usuarios:**
 ```bash
-
 sudo samba-tool user create lando Admin123!
-
 sudo samba-tool user create boba Admin123!
-
 ```
 
-
-
-\*\*Configurar recurso:\*\*
-
+**Configurar recurso:**
 ```bash
-
 sudo nano /etc/samba/smb.conf
-
-\# Añadir al final:
-
-\[trap]
-
-&nbsp;   path = /city/trap
-
-&nbsp;   read only = no
-
-&nbsp;   valid users = lando
-
-&nbsp;   vfs objects = acl\_xattr
-
-&nbsp;   map acl inherit = yes
-
+# Añadir al final:
+[trap]
+    path = /city/trap
+    read only = no
+    valid users = lando
+    vfs objects = acl_xattr
+    map acl inherit = yes
 ```
 
-
-
-\*\*RDP desde Linux:\*\*
-
+**RDP desde Linux:**
 ```bash
-
-xfreerdp /v:ELASTIC\_IP /u:Administrator /p:'Admin123!' /cert:ignore /dynamic-resolution
-
+xfreerdp /v:ELASTIC_IP /u:Administrator /p:'Admin123!' /cert:ignore /dynamic-resolution
 ```
 
-
-
-\*\*DNS en Windows:\*\*
-
+**DNS en Windows:**
 ```powershell
-
-Set-DnsClientServerAddress -InterfaceAlias "Ethernet" -ServerAddresses ("IP\_PRIVADA\_UBUNTU","8.8.8.8")
-
+Set-DnsClientServerAddress -InterfaceAlias "Ethernet" -ServerAddresses ("IP_PRIVADA_UBUNTU","8.8.8.8")
 ```
 
-
-
-\*\*Unir dominio:\*\*
-
+**Unir dominio:**
 ```powershell
-
-Add-Computer -DomainName cloud02.city -Credential BESPIN02\\Administrator -Restart
-
+Add-Computer -DomainName cloud02.city -Credential BESPIN02\Administrator -Restart
 ```
-
-
 
 ---
 
-
-
-\## 🎓 ÉXITO GARANTIZADO
-
-
+## 🎓 ÉXITO GARANTIZADO
 
 Si sigues esta guía PASO A PASO sin saltarte nada, el ejercicio funcionará correctamente.
 
+**Puntos críticos a NO olvidar:**
+1. ✅ Security Group con TODOS los puertos
+2. ✅ Elastic IPs asignadas
+3. ✅ Provision con dominio `cloud02.city` y NetBIOS `BESPIN02`
+4. ✅ `valid users = lando` en smb.conf
+5. ✅ DNS configurado en Windows (IP privada de Ubuntu)
+6. ✅ Crear carpeta CB dentro de trap
 
-
-\*\*Puntos críticos a NO olvidar:\*\*
-
-1\. ✅ Security Group con TODOS los puertos
-
-2\. ✅ Elastic IPs asignadas
-
-3\. ✅ Provision con dominio `cloud02.city` y NetBIOS `BESPIN02`
-
-4\. ✅ `valid users = lando` en smb.conf
-
-5\. ✅ DNS configurado en Windows (IP privada de Ubuntu)
-
-6\. ✅ Crear carpeta CB dentro de trap
-
-
-
-\*\*¡Mucha suerte en el examen! 🚀\*\*
-
+**¡Mucha suerte en el examen! 🚀**
