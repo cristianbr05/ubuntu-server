@@ -1,6 +1,7 @@
 # 🐧 Ubuntu Server + Samba AD DC - ADSO Cv1
 
-![Ubuntu](https://badgen.net/badge/Ubuntu/24.04_LTS/E95420?icon=ubuntu)
+![Ubuntu](https://badgen.net/badge/Ubuntu/24.04%20LTS/E95420?icon=ubuntu)
+![Windows](https://badgen.net/badge/OS/Windows/0078D6?icon=windows)
 ![Samba](https://badgen.net/badge/Samba/4.x/0052CC?icon=terminal)
 ![AWS](https://badgen.net/badge/AWS/EC2/FF9900?icon=aws)
 ![Status](https://badgen.net/badge/Status/Complete/green)
