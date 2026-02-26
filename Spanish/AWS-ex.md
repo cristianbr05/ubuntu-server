@@ -886,6 +886,14 @@ nslookup cloud02.city
 Add-Computer -DomainName cloud02.city -Credential BESPIN02\Administrator -Restart
 ```
 
+Alternativas>
+```powershell
+Add-Computer -DomainName cloud02.city -Credential cloud02\Administrator -Restart
+Add-Computer -DomainName cloud02.city -Credential Administrator@cloud02.city -Restart
+```
+
+⚠️ CUIDADO, revisa tener el teclado en el idioma correcto [ESP (Español)] y no poner carácteres que no son (quizá por eso te puede llegar a fallar al poner la contraseña incorrectamente)
+
 **Pide contraseña:**
 ```
 Password for BESPIN02\Administrator:
@@ -1304,5 +1312,6 @@ Si sigues esta guía PASO A PASO sin saltarte nada, el ejercicio funcionará cor
 6. ✅ Crear carpeta CB dentro de trap
 
 **¡Mucha suerte en el examen! 🚀**
+
 
 
