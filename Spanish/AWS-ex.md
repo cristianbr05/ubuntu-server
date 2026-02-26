@@ -147,7 +147,7 @@ Arquitectura: 64 bits (x86)
 
 **Tipo de instancia:**
 ```
-Tipo de instancia: t3.small (o t2.medium si no hay t3.small)
+Tipo de instancia: t3.micr (o t3.small si no hay t3.micro)
 ```
 
 **Par de claves:**
@@ -1835,6 +1835,7 @@ sudo smbclient -L localhost -U Administrator%admin_21
 ---
 
 **💡 Consejo final:** Si tienes dudas durante el examen, usa `valid users` - es lo más directo y funciona siempre.
+
 
 
 
