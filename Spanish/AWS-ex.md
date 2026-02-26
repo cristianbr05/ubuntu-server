@@ -1355,9 +1355,485 @@ Si sigues esta guía PASO A PASO sin saltarte nada, el ejercicio funcionará cor
 5. ✅ DNS configurado en Windows (IP privada de Ubuntu)
 6. ✅ Crear carpeta CB dentro de trap
 
-**¡Mucha suerte en el examen! 🚀**
+**¡Mucha suerte! 🚀**
 
+---
 
+## 🎓 EXTRA: CONFIGURACIONES DE PERMISOS (Para Variaciones del Examen)
 
+Esta sección cubre **todas las posibles variaciones** que el profesor puede pedir en el examen sobre permisos de carpetas compartidas.
+
+---
+
+### ESCENARIO 1: Un usuario con acceso, otro sin acceso (EXAMEN ACTUAL)
+
+**Requisito:** Solo `lando` puede acceder a `trap`, `boba` NO puede.
+
+**Configuración en smb.conf:**
+```ini
+[trap]
+    path = /city/trap
+    read only = no
+    valid users = lando
+    vfs objects = acl_xattr
+    map acl inherit = yes
+```
+
+**Comandos:**
+```bash
+# Crear usuarios
+sudo samba-tool user create lando admin_21
+sudo samba-tool user create boba admin_21
+
+# Crear carpeta
+sudo mkdir -p /city/trap
+sudo chmod 777 /city/trap
+
+# Editar smb.conf
+sudo nano /etc/samba/smb.conf
+# (añadir la configuración de arriba)
+
+# Recargar
+sudo smbcontrol all reload-config
+```
+
+**Verificación:**
+- ✅ lando accede: `\\bespin02.cloud02.city\trap`
+- ❌ boba denegado
+
+---
+
+### ESCENARIO 2: Varios usuarios con acceso, uno sin acceso
+
+**Requisito:** `lando` y `han` pueden acceder, `boba` NO puede.
+
+**Configuración:**
+```ini
+[trap]
+    path = /city/trap
+    read only = no
+    valid users = lando han
+    vfs objects = acl_xattr
+    map acl inherit = yes
+```
+
+**Comandos:**
+```bash
+# Crear usuarios
+sudo samba-tool user create lando admin_21
+sudo samba-tool user create han admin_21
+sudo samba-tool user create boba admin_21
+
+# Editar smb.conf
+sudo nano /etc/samba/smb.conf
+# valid users = lando han
+
+# Recargar
+sudo smbcontrol all reload-config
+```
+
+**Verificación:**
+- ✅ lando accede
+- ✅ han accede
+- ❌ boba denegado
+
+---
+
+### ESCENARIO 3: Solo lectura para unos, lectura/escritura para otros
+
+**Requisito:** `lando` puede leer/escribir, `boba` solo puede leer.
+
+**Configuración:**
+```ini
+[trap]
+    path = /city/trap
+    read only = no
+    valid users = lando boba
+    write list = lando
+    vfs objects = acl_xattr
+    map acl inherit = yes
+```
+
+**Comandos:**
+```bash
+# Crear usuarios
+sudo samba-tool user create lando admin_21
+sudo samba-tool user create boba admin_21
+
+# Editar smb.conf
+sudo nano /etc/samba/smb.conf
+# valid users = lando boba
+# write list = lando
+
+# Recargar
+sudo smbcontrol all reload-config
+```
+
+**Verificación:**
+- ✅ lando puede crear carpetas/archivos
+- ✅ boba puede ver pero NO crear/modificar
+
+---
+
+### ESCENARIO 4: Acceso por grupos
+
+**Requisito:** Solo el grupo `Rebeldes` puede acceder, `boba` (que NO está en el grupo) no puede.
+
+**Configuración:**
+```ini
+[trap]
+    path = /city/trap
+    read only = no
+    valid users = @Rebeldes
+    vfs objects = acl_xattr
+    map acl inherit = yes
+```
+
+**Comandos:**
+```bash
+# Crear usuarios
+sudo samba-tool user create lando admin_21
+sudo samba-tool user create han admin_21
+sudo samba-tool user create boba admin_21
+
+# Crear grupo
+sudo samba-tool group add Rebeldes
+
+# Añadir usuarios al grupo
+sudo samba-tool group addmembers Rebeldes lando,han
+
+# Verificar miembros
+sudo samba-tool group listmembers Rebeldes
+
+# Editar smb.conf
+sudo nano /etc/samba/smb.conf
+# valid users = @Rebeldes
+
+# Recargar
+sudo smbcontrol all reload-config
+```
+
+**Verificación:**
+- ✅ lando accede (está en Rebeldes)
+- ✅ han accede (está en Rebeldes)
+- ❌ boba denegado (NO está en Rebeldes)
+
+---
+
+### ESCENARIO 5: Denegar acceso explícito a usuarios específicos
+
+**Requisito:** Todos pueden acceder EXCEPTO `boba`.
+
+**Configuración:**
+```ini
+[trap]
+    path = /city/trap
+    read only = no
+    invalid users = boba
+    vfs objects = acl_xattr
+    map acl inherit = yes
+```
+
+**Comandos:**
+```bash
+# Crear usuarios
+sudo samba-tool user create lando admin_21
+sudo samba-tool user create han admin_21
+sudo samba-tool user create boba admin_21
+
+# Editar smb.conf
+sudo nano /etc/samba/smb.conf
+# invalid users = boba
+
+# Recargar
+sudo smbcontrol all reload-config
+```
+
+**Verificación:**
+- ✅ lando accede
+- ✅ han accede
+- ✅ cualquier otro usuario accede
+- ❌ boba denegado explícitamente
+
+---
+
+### ESCENARIO 6: Carpeta pública (todos pueden acceder)
+
+**Requisito:** Cualquier usuario puede acceder sin autenticación.
+
+**Configuración:**
+```ini
+[trap]
+    path = /city/trap
+    read only = no
+    guest ok = yes
+    vfs objects = acl_xattr
+    map acl inherit = yes
+```
+
+**Comandos:**
+```bash
+# Crear carpeta
+sudo mkdir -p /city/trap
+sudo chmod 777 /city/trap
+
+# Editar smb.conf
+sudo nano /etc/samba/smb.conf
+# guest ok = yes
+
+# Recargar
+sudo smbcontrol all reload-config
+```
+
+**Verificación:**
+- ✅ Cualquier usuario accede (incluso sin credenciales)
+
+---
+
+### ESCENARIO 7: Múltiples carpetas con diferentes permisos
+
+**Requisito:** 
+- `/city/trap` → solo `lando`
+- `/city/cloud` → solo `boba`
+- `/city/public` → todos
+
+**Configuración:**
+```ini
+[trap]
+    path = /city/trap
+    read only = no
+    valid users = lando
+    vfs objects = acl_xattr
+    map acl inherit = yes
+
+[cloud]
+    path = /city/cloud
+    read only = no
+    valid users = boba
+    vfs objects = acl_xattr
+    map acl inherit = yes
+
+[public]
+    path = /city/public
+    read only = no
+    guest ok = yes
+    vfs objects = acl_xattr
+    map acl inherit = yes
+```
+
+**Comandos:**
+```bash
+# Crear carpetas
+sudo mkdir -p /city/trap
+sudo mkdir -p /city/cloud
+sudo mkdir -p /city/public
+sudo chmod 777 /city/trap
+sudo chmod 777 /city/cloud
+sudo chmod 755 /city/public
+
+# Crear usuarios
+sudo samba-tool user create lando admin_21
+sudo samba-tool user create boba admin_21
+
+# Editar smb.conf (añadir las 3 secciones de arriba)
+sudo nano /etc/samba/smb.conf
+
+# Recargar
+sudo smbcontrol all reload-config
+```
+
+**Verificación:**
+- ✅ lando accede a `trap`, NO a `cloud`
+- ✅ boba accede a `cloud`, NO a `trap`
+- ✅ Ambos acceden a `public`
+
+---
+
+### ESCENARIO 8: Grupo con acceso + usuario individual extra
+
+**Requisito:** Grupo `Rebeldes` puede acceder + `chewie` (que NO está en el grupo) también puede.
+
+**Configuración:**
+```ini
+[trap]
+    path = /city/trap
+    read only = no
+    valid users = @Rebeldes chewie
+    vfs objects = acl_xattr
+    map acl inherit = yes
+```
+
+**Comandos:**
+```bash
+# Crear usuarios
+sudo samba-tool user create lando admin_21
+sudo samba-tool user create han admin_21
+sudo samba-tool user create chewie admin_21
+sudo samba-tool user create boba admin_21
+
+# Crear grupo y añadir miembros
+sudo samba-tool group add Rebeldes
+sudo samba-tool group addmembers Rebeldes lando,han
+
+# Editar smb.conf
+sudo nano /etc/samba/smb.conf
+# valid users = @Rebeldes chewie
+
+# Recargar
+sudo smbcontrol all reload-config
+```
+
+**Verificación:**
+- ✅ lando accede (está en Rebeldes)
+- ✅ han accede (está en Rebeldes)
+- ✅ chewie accede (listado individual)
+- ❌ boba denegado
+
+---
+
+### ESCENARIO 9: Solo lectura para todos excepto uno
+
+**Requisito:** Todos pueden leer, solo `lando` puede escribir.
+
+**Configuración:**
+```ini
+[trap]
+    path = /city/trap
+    read only = yes
+    write list = lando
+    vfs objects = acl_xattr
+    map acl inherit = yes
+```
+
+**Comandos:**
+```bash
+# Crear usuarios
+sudo samba-tool user create lando admin_21
+sudo samba-tool user create boba admin_21
+sudo samba-tool user create han admin_21
+
+# Editar smb.conf
+sudo nano /etc/samba/smb.conf
+# read only = yes
+# write list = lando
+
+# Recargar
+sudo smbcontrol all reload-config
+```
+
+**Verificación:**
+- ✅ lando puede crear/modificar archivos
+- ✅ boba solo puede ver (no crear/modificar)
+- ✅ han solo puede ver (no crear/modificar)
+
+---
+
+## 📋 CHEATSHEET DE PERMISOS
+
+### Parámetros principales de smb.conf
+
+| Parámetro | Descripción | Ejemplo |
+|-----------|-------------|---------|
+| `valid users` | Solo estos usuarios/grupos pueden acceder | `valid users = lando @Rebeldes` |
+| `invalid users` | Estos usuarios NO pueden acceder | `invalid users = boba` |
+| `read only` | Si es `yes`, nadie puede escribir (solo lectura) | `read only = yes` |
+| `write list` | Usuarios que SÍ pueden escribir (anula `read only`) | `write list = lando` |
+| `guest ok` | Permitir acceso sin autenticación | `guest ok = yes` |
+| `@NombreGrupo` | Referencia a un grupo (usar arroba @) | `valid users = @Rebeldes` |
+
+---
+
+### Comandos rápidos
+
+**Crear usuario:**
+```bash
+sudo samba-tool user create NOMBRE CONTRASEÑA
+```
+
+**Crear grupo:**
+```bash
+sudo samba-tool group add NOMBRE_GRUPO
+```
+
+**Añadir usuario a grupo:**
+```bash
+sudo samba-tool group addmembers GRUPO usuario1,usuario2
+```
+
+**Listar miembros de grupo:**
+```bash
+sudo samba-tool group listmembers GRUPO
+```
+
+**Verificar configuración:**
+```bash
+sudo testparm
+```
+
+**Recargar Samba:**
+```bash
+sudo smbcontrol all reload-config
+```
+
+**Listar recursos compartidos:**
+```bash
+sudo smbclient -L localhost -U Administrator%admin_21
+```
+
+---
+
+## 🎯 ESTRATEGIA PARA EL EXAMEN
+
+### Si te piden algo diferente:
+
+1. **Anotar exactamente qué te piden:**
+   - ¿Qué usuarios pueden acceder?
+   - ¿Qué usuarios NO pueden?
+   - ¿Hay grupos involucrados?
+   - ¿Solo lectura o lectura/escritura?
+
+2. **Crear usuarios necesarios:**
+```bash
+   sudo samba-tool user create USUARIO admin_21
+```
+
+3. **Crear grupos si es necesario:**
+```bash
+   sudo samba-tool group add GRUPO
+   sudo samba-tool group addmembers GRUPO usuario1,usuario2
+```
+
+4. **Editar smb.conf con la configuración adecuada:**
+```bash
+   sudo nano /etc/samba/smb.conf
+```
+
+5. **Recargar:**
+```bash
+   sudo smbcontrol all reload-config
+```
+
+6. **Probar desde Windows:**
+```
+   \\bespin02.cloud02.city\RECURSO
+```
+
+---
+
+### Combinaciones más comunes en exámenes:
+
+| Requisito | Configuración |
+|-----------|---------------|
+| Solo USER1 accede | `valid users = USER1` |
+| Solo USER1 y USER2 acceden | `valid users = USER1 USER2` |
+| Solo grupo GRUPO accede | `valid users = @GRUPO` |
+| Todos EXCEPTO USER1 | `invalid users = USER1` |
+| USER1 escribe, otros solo leen | `read only = yes` + `write list = USER1` |
+| Todos pueden acceder | `guest ok = yes` |
+| Grupo + usuario extra | `valid users = @GRUPO USER1` |
+
+---
+
+**💡 Consejo final:** Si tienes dudas durante el examen, usa `valid users` - es lo más directo y funciona siempre.
 
 
