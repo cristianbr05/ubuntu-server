@@ -888,7 +888,9 @@ Add-Computer -DomainName cloud02.city -Credential BESPIN02\Administrator -Restar
 
 Alternativas>
 ```powershell
+# Diferente inicio de sesión v2
 Add-Computer -DomainName cloud02.city -Credential cloud02\Administrator -Restart
+# Diferente inicio de sesión v3
 Add-Computer -DomainName cloud02.city -Credential Administrator@cloud02.city -Restart
 ```
 
@@ -1312,6 +1314,7 @@ Si sigues esta guía PASO A PASO sin saltarte nada, el ejercicio funcionará cor
 6. ✅ Crear carpeta CB dentro de trap
 
 **¡Mucha suerte en el examen! 🚀**
+
 
 
 
