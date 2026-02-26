@@ -205,7 +205,7 @@ Seleccionar: LabInstanceProfile
 ```
 Servidor Ubuntu:
   IP pública: ___.___.___.___ (ejemplo: 54.173.102.89)
-  IP privada: 10.0.___.___ (ejemplo: 10.0.1.229)
+  IP privada: 10.0.___.___ (ejemplo: 172.31.0.164)
 ```
 
 ---
@@ -426,10 +426,10 @@ sudo nano /etc/hosts
 127.0.1.1       bespin02.cloud02.city bespin02
 
 # IP privada de esta instancia (CAMBIAR por la tuya)
-10.0.1.229      bespin02.cloud02.city bespin02
+172.31.0.164      bespin02.cloud02.city bespin02
 ```
 
-**⚠️ CAMBIAR `10.0.1.229` por TU IP privada de Ubuntu.**
+**⚠️ CAMBIAR `172.31.0.164` por TU IP privada de Ubuntu.**
 
 **Guardar:**
 ```
@@ -588,12 +588,12 @@ Debe mostrar: `Active: active (running)` en verde.
 # Verificar DNS
 host cloud02.city
 ```
-**Debe responder:** `cloud02.city has address 10.0.1.229`
+**Debe responder:** `cloud02.city has address 172.31.0.164`
 
 ```bash
 host bespin02.cloud02.city
 ```
-**Debe responder:** `bespin02.cloud02.city has address 10.0.1.229`
+**Debe responder:** `bespin02.cloud02.city has address 172.31.0.164`
 
 ```bash
 host -t SRV _ldap._tcp.cloud02.city
@@ -817,10 +817,10 @@ Abrir: hosts
 
 **Añadir al final:**
 ```
-10.0.1.229      bespin02.cloud02.city bespin02 cloud02.city
+172.31.0.164      bespin02.cloud02.city bespin02 cloud02.city
 ```
 
-**⚠️ CAMBIAR `10.0.1.229` por TU IP privada de Ubuntu.**
+**⚠️ CAMBIAR `172.31.0.164` por TU IP privada de Ubuntu.**
 
 **Guardar:** Archivo → Guardar
 
@@ -846,10 +846,10 @@ Ethernet                  AWS PV Network Device
 
 **Configurar DNS:**
 ```powershell
-Set-DnsClientServerAddress -InterfaceAlias "Ethernet" -ServerAddresses ("10.0.1.229","8.8.8.8")
+Set-DnsClientServerAddress -InterfaceAlias "Ethernet" -ServerAddresses ("172.31.0.164","8.8.8.8")
 ```
 
-**⚠️ CAMBIAR `10.0.1.229` por TU IP privada de Ubuntu.**
+**⚠️ CAMBIAR `172.31.0.164` por TU IP privada de Ubuntu.**
 
 **Verificar:**
 ```powershell
@@ -864,7 +864,7 @@ Debe mostrar tu IP privada de Ubuntu como DNS primario.
 
 ```powershell
 # Ping al servidor Ubuntu
-ping 10.0.1.229
+ping 172.31.0.164
 
 # Debe responder
 
@@ -1194,13 +1194,13 @@ sudo samba-tool user show lando
 **Verificar en Windows:**
 ```powershell
 # Ping al servidor
-ping 10.0.1.229
+ping 172.31.0.164
 
 # Puerto SMB abierto
-Test-NetConnection -ComputerName 10.0.1.229 -Port 445
+Test-NetConnection -ComputerName 172.31.0.164 -Port 445
 
 # Listar recursos
-net view \\10.0.1.229
+net view \\172.31.0.164
 ```
 
 ---
@@ -1835,5 +1835,6 @@ sudo smbclient -L localhost -U Administrator%admin_21
 ---
 
 **💡 Consejo final:** Si tienes dudas durante el examen, usa `valid users` - es lo más directo y funciona siempre.
+
 
 
