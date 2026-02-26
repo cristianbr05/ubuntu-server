@@ -60,13 +60,23 @@ Debe mostrar: `-r-------- 1 tu_usuario tu_usuario ...`
 
 ## 🔐 PARTE 2: CREAR GRUPO DE SEGURIDAD
 
-### Paso 3: Ir al servicio VPC
+### Paso 3: Verificar rango de tu VPC (OPCIONAL)
 
+⚠️ **Puedes saltarte este paso** y usar `0.0.0.0/0` en todas las reglas (más fácil).
+
+**Si quieres ser más específico:**
 ```
 1. En la consola de AWS, buscar: "VPC"
 2. Clic en "VPC"
-3. Menú izquierdo → "Grupos de seguridad"
-4. Clic en "Crear grupo de seguridad" (botón naranja)
+3. Menú izquierdo → "Tus VPCs"
+4. Seleccionar "VPC de laboratorio"
+5. Ver columna "CIDR IPv4"
+6. Anotar el rango (ejemplo: 172.31.0.0/16)
+```
+
+📝 **Anotar:**
+```
+Rango VPC: ___.___.___.___/___ (ejemplo: 172.31.0.0/16)
 ```
 
 ---
@@ -90,16 +100,16 @@ VPC: Seleccionar la VPC del laboratorio (VPC de laboratorio o vpc-XXXXXXX)
 |------|--------|-----------|--------|-------------|
 | SSH | 22 | TCP | 0.0.0.0/0 | SSH |
 | RDP | 3389 | TCP | 0.0.0.0/0 | RDP |
-| TCP personalizado | 53 | TCP | 10.0.0.0/16 | DNS TCP |
-| UDP personalizado | 53 | UDP | 10.0.0.0/16 | DNS UDP |
-| TCP personalizado | 88 | TCP | 10.0.0.0/16 | Kerberos |
-| UDP personalizado | 88 | UDP | 10.0.0.0/16 | Kerberos UDP |
-| TCP personalizado | 389 | TCP | 10.0.0.0/16 | LDAP |
-| TCP personalizado | 445 | TCP | 10.0.0.0/16 | SMB |
-| TCP personalizado | 636 | TCP | 10.0.0.0/16 | LDAPS |
-| TCP personalizado | 464 | TCP | 10.0.0.0/16 | Contraseña Kerberos |
-| UDP personalizado | 464 | UDP | 10.0.0.0/16 | Contraseña Kerberos UDP |
-| Todo el tráfico | Todo | Todo | 10.0.0.0/16 | VPC interna |
+| TCP personalizado | 53 | TCP | 0.0.0.0/0 | DNS TCP |
+| UDP personalizado | 53 | UDP | 0.0.0.0/0 | DNS UDP |
+| TCP personalizado | 88 | TCP | 0.0.0.0/0 | Kerberos |
+| UDP personalizado | 88 | UDP | 0.0.0.0/0 | Kerberos UDP |
+| TCP personalizado | 389 | TCP | 0.0.0.0/0 | LDAP |
+| TCP personalizado | 445 | TCP | 0.0.0.0/0 | SMB |
+| TCP personalizado | 636 | TCP | 0.0.0.0/0 | LDAPS |
+| TCP personalizado | 464 | TCP | 0.0.0.0/0 | Contraseña Kerberos |
+| UDP personalizado | 464 | UDP | 0.0.0.0/0 | Contraseña Kerberos UDP |
+| Todo el tráfico | Todo | Todo | 0.0.0.0/0 | VPC interna |
 
 **⚠️ IMPORTANTE:** 
 - `10.0.0.0/16` es el rango interno de la VPC
@@ -1294,4 +1304,5 @@ Si sigues esta guía PASO A PASO sin saltarte nada, el ejercicio funcionará cor
 6. ✅ Crear carpeta CB dentro de trap
 
 **¡Mucha suerte en el examen! 🚀**
+
 
