@@ -20,8 +20,8 @@
 2. Ir a: https://awsacademy.instructure.com/
 3. Iniciar sesión con tu email de estudiante
 4. Clic en tu curso "AWS Academy Learner Lab"
-5. Menú izquierdo → "Modules" → "Learner Lab"
-6. Clic en "Start Lab" (botón verde)
+5. Menú izquierdo → "Módulos" → "Learner Lab"
+6. Clic en "Iniciar laboratorio" (botón verde)
 7. Espera 1-3 minutos hasta que el círculo esté 🟢 verde
 8. Cuando esté verde, clic en "AWS"
 ```
@@ -33,8 +33,8 @@ Se abre la consola de AWS.
 ### Paso 2: Descargar par de claves SSH
 
 ```
-1. En la página del Learner Lab, clic en "AWS Details" (arriba)
-2. Clic en "Download PEM" (al lado de "SSH Key")
+1. En la página del Learner Lab, clic en "Detalles de AWS" (arriba)
+2. Clic en "Descargar PEM" (al lado de "Clave SSH")
 3. Se descarga "labsuser.pem" en tu carpeta Descargas
 ```
 
@@ -58,54 +58,54 @@ Debe mostrar: `-r-------- 1 tu_usuario tu_usuario ...`
 
 ---
 
-## 🔐 PARTE 2: CREAR SECURITY GROUP
+## 🔐 PARTE 2: CREAR GRUPO DE SEGURIDAD
 
 ### Paso 3: Ir al servicio VPC
 
 ```
 1. En la consola de AWS, buscar: "VPC"
 2. Clic en "VPC"
-3. Menú izquierdo → "Security Groups"
-4. Clic en "Create security group" (botón naranja)
+3. Menú izquierdo → "Grupos de seguridad"
+4. Clic en "Crear grupo de seguridad" (botón naranja)
 ```
 
 ---
 
-### Paso 4: Configurar Security Group
+### Paso 4: Configurar grupo de seguridad
 
-**Basic details:**
+**Detalles básicos:**
 ```
-Security group name: Cloud02-SG
-Description: Security group for cloud02.city domain
-VPC: Seleccionar la VPC del lab (Lab VPC o vpc-XXXXXXX)
+Nombre del grupo de seguridad: Cloud02-SG
+Descripción: Grupo de seguridad para dominio cloud02.city
+VPC: Seleccionar la VPC del laboratorio (VPC de laboratorio o vpc-XXXXXXX)
 ```
 
 ---
 
-### Paso 5: Añadir reglas de entrada (Inbound rules)
+### Paso 5: Añadir reglas de entrada
 
-**Clic en "Add rule" para cada una de estas:**
+**Clic en "Agregar regla" para cada una de estas:**
 
 | Tipo | Puerto | Protocolo | Origen | Descripción |
 |------|--------|-----------|--------|-------------|
 | SSH | 22 | TCP | 0.0.0.0/0 | SSH |
 | RDP | 3389 | TCP | 0.0.0.0/0 | RDP |
-| Custom TCP | 53 | TCP | 10.0.0.0/16 | DNS TCP |
-| Custom UDP | 53 | UDP | 10.0.0.0/16 | DNS UDP |
-| Custom TCP | 88 | TCP | 10.0.0.0/16 | Kerberos |
-| Custom UDP | 88 | UDP | 10.0.0.0/16 | Kerberos UDP |
-| Custom TCP | 389 | TCP | 10.0.0.0/16 | LDAP |
-| Custom TCP | 445 | TCP | 10.0.0.0/16 | SMB |
-| Custom TCP | 636 | TCP | 10.0.0.0/16 | LDAPS |
-| Custom TCP | 464 | TCP | 10.0.0.0/16 | Kerberos Pass |
-| Custom UDP | 464 | UDP | 10.0.0.0/16 | Kerberos Pass UDP |
-| All traffic | All | All | 10.0.0.0/16 | Internal VPC |
+| TCP personalizado | 53 | TCP | 10.0.0.0/16 | DNS TCP |
+| UDP personalizado | 53 | UDP | 10.0.0.0/16 | DNS UDP |
+| TCP personalizado | 88 | TCP | 10.0.0.0/16 | Kerberos |
+| UDP personalizado | 88 | UDP | 10.0.0.0/16 | Kerberos UDP |
+| TCP personalizado | 389 | TCP | 10.0.0.0/16 | LDAP |
+| TCP personalizado | 445 | TCP | 10.0.0.0/16 | SMB |
+| TCP personalizado | 636 | TCP | 10.0.0.0/16 | LDAPS |
+| TCP personalizado | 464 | TCP | 10.0.0.0/16 | Contraseña Kerberos |
+| UDP personalizado | 464 | UDP | 10.0.0.0/16 | Contraseña Kerberos UDP |
+| Todo el tráfico | Todo | Todo | 10.0.0.0/16 | VPC interna |
 
 **⚠️ IMPORTANTE:** 
 - `10.0.0.0/16` es el rango interno de la VPC
 - Si tu VPC usa otro rango, ajústalo
 
-**Clic en "Create security group"**
+**Clic en "Crear grupo de seguridad"**
 
 ---
 
@@ -116,109 +116,109 @@ VPC: Seleccionar la VPC del lab (Lab VPC o vpc-XXXXXXX)
 ```
 1. Buscar: "EC2"
 2. Clic en "EC2"
-3. Menú izquierdo → "Instances"
-4. Clic en "Launch instances" (botón naranja)
+3. Menú izquierdo → "Instancias"
+4. Clic en "Lanzar instancias" (botón naranja)
 ```
 
 ---
 
 ### Paso 7: Configurar instancia Ubuntu
 
-**Name and tags:**
+**Nombre y etiquetas:**
 ```
-Name: Ubuntu-DC-Cloud02
+Nombre: Ubuntu-DC-Cloud02
 ```
 
-**Application and OS Images:**
+**Imágenes de aplicaciones y SO:**
 ```
 AMI: Ubuntu Server 24.04 LTS
-Architecture: 64-bit (x86)
+Arquitectura: 64 bits (x86)
 ```
 
-**Instance type:**
+**Tipo de instancia:**
 ```
-Instance type: t3.small (o t2.medium si no hay t3.small)
+Tipo de instancia: t3.small (o t2.medium si no hay t3.small)
 ```
 
-**Key pair:**
+**Par de claves:**
 ```
-Key pair: vockey (ya existe)
+Par de claves: vockey (ya existe)
 ```
 
 ---
 
-**Network settings → Clic en "Edit":**
+**Configuración de red → Clic en "Editar":**
 
 ```
-VPC: Lab VPC (la que tiene el lab)
-Subnet: Cualquier subnet pública (Public Subnet 1)
-Auto-assign public IP: Enable ✅
-Firewall (security groups): Select existing security group
+VPC: VPC de laboratorio (la que tiene el laboratorio)
+Subred: Cualquier subred pública (Subred pública 1)
+Asignar IP pública automáticamente: Habilitar ✅
+Firewall (grupos de seguridad): Seleccionar grupo de seguridad existente
   → Seleccionar: Cloud02-SG
 ```
 
 ---
 
-**Configure storage:**
+**Configurar almacenamiento:**
 ```
-Size: 20 GiB
-Volume type: gp3
-Delete on termination: ✅
+Tamaño: 20 GiB
+Tipo de volumen: gp3
+Eliminar al terminar: ✅
 ```
 
 ---
 
-**Advanced details:**
+**Detalles avanzados:**
 ```
-Scroll hasta "IAM instance profile"
+Desplazarse hasta "Perfil de instancia de IAM"
 Seleccionar: LabInstanceProfile
 ```
 
 ---
 
-**Clic en "Launch instance"**
+**Clic en "Lanzar instancia"**
 
 ---
 
 ### Paso 8: Esperar y anotar IPs del Ubuntu
 
 ```
-1. Clic en "View all instances"
+1. Clic en "Ver todas las instancias"
 2. Espera 2-3 minutos
-3. Estado debe ser: 🟢 Running
-4. Status checks: ✅ 2/2 checks passed
+3. Estado debe ser: 🟢 En ejecución
+4. Comprobaciones de estado: ✅ 2/2 comprobaciones aprobadas
 5. Seleccionar la instancia "Ubuntu-DC-Cloud02"
-6. Panel inferior "Details" → Anotar:
+6. Panel inferior "Detalles" → Anotar:
 ```
 
 📝 **Anotar en papel:**
 ```
-Ubuntu Server:
+Servidor Ubuntu:
   IP pública: ___.___.___.___ (ejemplo: 54.173.102.89)
   IP privada: 10.0.___.___ (ejemplo: 10.0.1.229)
 ```
 
 ---
 
-### Paso 9: Asignar Elastic IP al Ubuntu
+### Paso 9: Asignar IP elástica al Ubuntu
 
 **¿Por qué?** Para que la IP pública no cambie al reiniciar.
 
 ```
-1. EC2 → Menú izquierdo → "Elastic IPs"
-2. Clic en "Allocate Elastic IP address"
-3. Clic en "Allocate"
-4. Seleccionar la Elastic IP recién creada (checkbox)
-5. Actions → Associate Elastic IP address
-6. Instance: Seleccionar "Ubuntu-DC-Cloud02"
-7. Private IP: Dejar la que aparece
-8. Clic en "Associate"
+1. EC2 → Menú izquierdo → "IPs elásticas"
+2. Clic en "Asignar dirección IP elástica"
+3. Clic en "Asignar"
+4. Seleccionar la IP elástica recién creada (casilla de verificación)
+5. Acciones → Asociar dirección IP elástica
+6. Instancia: Seleccionar "Ubuntu-DC-Cloud02"
+7. IP privada: Dejar la que aparece
+8. Clic en "Asociar"
 ```
 
 📝 **Actualizar nota:**
 ```
-Ubuntu Server:
-  Elastic IP: ___.___.___.___ (nueva IP pública)
+Servidor Ubuntu:
+  IP elástica: ___.___.___.___ (nueva IP pública)
   IP privada: 10.0.___.___
 ```
 
@@ -229,98 +229,98 @@ Ubuntu Server:
 ### Paso 10: Lanzar instancia Windows
 
 ```
-1. EC2 → Instances → Launch instances
+1. EC2 → Instancias → Lanzar instancias
 ```
 
 ---
 
 ### Paso 11: Configurar instancia Windows
 
-**Name:**
+**Nombre:**
 ```
-Name: Windows-Client-Cloud02
+Nombre: Windows-Client-Cloud02
 ```
 
-**Application and OS Images:**
+**Imágenes de aplicaciones y SO:**
 ```
 AMI: Microsoft Windows Server 2022 Base
-Architecture: 64-bit (x86)
+Arquitectura: 64 bits (x86)
 ```
 
-**Instance type:**
+**Tipo de instancia:**
 ```
-Instance type: t3.small
+Tipo de instancia: t3.small
 ```
 
-**Key pair:**
+**Par de claves:**
 ```
-Key pair: vockey (el mismo)
+Par de claves: vockey (el mismo)
 ```
 
 ---
 
-**Network settings → Edit:**
+**Configuración de red → Editar:**
 
 ```
-VPC: MISMA VPC que Ubuntu (Lab VPC)
-Subnet: MISMA subnet o cualquier pública
-Auto-assign public IP: Enable ✅
-Security group: Select existing
+VPC: MISMA VPC que Ubuntu (VPC de laboratorio)
+Subred: MISMA subred o cualquier pública
+Asignar IP pública automáticamente: Habilitar ✅
+Grupo de seguridad: Seleccionar existente
   → Seleccionar: Cloud02-SG (el mismo que Ubuntu)
 ```
 
 ---
 
-**Storage:**
+**Almacenamiento:**
 ```
-Size: 30 GiB
-Type: gp3
-```
-
-**Advanced details:**
-```
-IAM instance profile: LabInstanceProfile
+Tamaño: 30 GiB
+Tipo: gp3
 ```
 
-**Launch instance**
+**Detalles avanzados:**
+```
+Perfil de instancia de IAM: LabInstanceProfile
+```
+
+**Lanzar instancia**
 
 ---
 
 ### Paso 12: Esperar y anotar IPs de Windows
 
 ```
-1. View all instances
+1. Ver todas las instancias
 2. Espera 5-7 minutos (Windows tarda más)
-3. Estado: 🟢 Running
-4. Status checks: ✅ 2/2 checks passed
+3. Estado: 🟢 En ejecución
+4. Comprobaciones de estado: ✅ 2/2 comprobaciones aprobadas
 5. Seleccionar "Windows-Client-Cloud02"
 6. Panel inferior → Anotar:
 ```
 
 📝 **Anotar:**
 ```
-Windows Server:
+Servidor Windows:
   IP pública: ___.___.___.___ (ejemplo: 54.221.100.222)
   IP privada: 10.0.___.___ (ejemplo: 10.0.14.107)
 ```
 
 ---
 
-### Paso 13: Asignar Elastic IP a Windows
+### Paso 13: Asignar IP elástica a Windows
 
 ```
-1. EC2 → Elastic IPs → Allocate Elastic IP address
-2. Allocate
-3. Seleccionar la nueva Elastic IP
-4. Actions → Associate Elastic IP address
-5. Instance: Seleccionar "Windows-Client-Cloud02"
-6. Associate
+1. EC2 → IPs elásticas → Asignar dirección IP elástica
+2. Asignar
+3. Seleccionar la nueva IP elástica
+4. Acciones → Asociar dirección IP elástica
+5. Instancia: Seleccionar "Windows-Client-Cloud02"
+6. Asociar
 ```
 
 📝 **Actualizar:**
 ```
-Windows Server:
-  Elastic IP: ___.___.___.___
+Servidor Windows:
+  IP elástica: ___.___.___.___
   IP privada: 10.0.___.___
 ```
 
@@ -331,14 +331,14 @@ Windows Server:
 ⚠️ **ESPERAR 5-7 minutos después de lanzar antes de hacer esto.**
 
 ```
-1. EC2 → Instances → Seleccionar "Windows-Client-Cloud02"
-2. Botón "Connect" (arriba)
-3. Pestaña "RDP client"
-4. Clic en "Get password"
-5. Clic en "Upload private key file"
+1. EC2 → Instancias → Seleccionar "Windows-Client-Cloud02"
+2. Botón "Conectar" (arriba)
+3. Pestaña "Cliente RDP"
+4. Clic en "Obtener contraseña"
+5. Clic en "Cargar archivo de clave privada"
 6. Navegar a: ~/.ssh/labsuser.pem
 7. Seleccionar y abrir
-8. Clic en "Decrypt password"
+8. Clic en "Descifrar contraseña"
 9. COPIAR la contraseña que aparece
 ```
 
@@ -750,9 +750,9 @@ xfreerdp /v:54.221.100.222 \
 
 ### Paso 32: Configurar Windows (primera vez)
 
-**Abrir PowerShell como Administrator:**
+**Abrir PowerShell como Administrador:**
 ```
-Clic derecho en Inicio → Windows PowerShell (Admin)
+Clic derecho en Inicio → Windows PowerShell (Administrador)
 ```
 
 **Cambiar contraseña a algo simple:**
@@ -772,7 +772,7 @@ netsh advfirewall firewall add rule name="ICMP Allow" protocol=icmpv4:8,any dir=
 
 **Cerrar sesión RDP:**
 ```
-Inicio → Icono usuario → Sign out
+Inicio → Icono usuario → Cerrar sesión
 ```
 
 ---
@@ -792,16 +792,16 @@ xfreerdp /v:54.221.100.222 \
 
 ## 🌐 PARTE 8: CONFIGURAR WINDOWS PARA EL DOMINIO
 
-### Paso 34: Añadir servidor Ubuntu al hosts de Windows
+### Paso 34: Añadir servidor Ubuntu al archivo hosts de Windows
 
-**En Windows (RDP), abrir Notepad como Administrator:**
+**En Windows (RDP), abrir Bloc de notas como Administrador:**
 
 ```
 Inicio → Buscar: notepad
-Clic derecho en Notepad → Run as administrator
-File → Open
+Clic derecho en Bloc de notas → Ejecutar como administrador
+Archivo → Abrir
 Navegar a: C:\Windows\System32\drivers\etc\
-Cambiar filtro de "Text Documents" a "All Files"
+Cambiar filtro de "Documentos de texto" a "Todos los archivos"
 Abrir: hosts
 ```
 
@@ -812,9 +812,9 @@ Abrir: hosts
 
 **⚠️ CAMBIAR `10.0.1.229` por TU IP privada de Ubuntu.**
 
-**Guardar:** File → Save
+**Guardar:** Archivo → Guardar
 
-**Cerrar Notepad.**
+**Cerrar Bloc de notas.**
 
 ---
 
@@ -934,16 +934,16 @@ Domain: cloud02.city
 
 ```
 En Windows (RDP):
-Inicio → Icono usuario → Sign out
+Inicio → Icono usuario → Cerrar sesión
 ```
 
 ---
 
 ### Paso 40: Iniciar sesión como lando
 
-**En la pantalla de login:**
+**En la pantalla de inicio de sesión:**
 ```
-Clic en "Other user"
+Clic en "Otro usuario"
 Usuario: BESPIN02\lando
 Contraseña: Admin123!
 ```
@@ -974,7 +974,7 @@ Contraseña: Admin123!
 
 **Dentro de la carpeta trap:**
 ```
-Clic derecho → New → Folder
+Clic derecho → Nuevo → Carpeta
 Nombre: CB
 Enter
 ```
@@ -986,7 +986,7 @@ Doble clic en CB
 
 **Crear archivo de prueba:**
 ```
-Clic derecho → New → Text Document
+Clic derecho → Nuevo → Documento de texto
 Nombre: prueba.txt
 Abrir y escribir: "Acceso OK - Lando"
 Guardar y cerrar
@@ -999,12 +999,12 @@ Guardar y cerrar
 ### Paso 43: Cerrar sesión de lando y probar con boba
 
 ```
-Inicio → Icono usuario → Sign out
+Inicio → Icono usuario → Cerrar sesión
 ```
 
 **Iniciar sesión como boba:**
 ```
-Other user
+Otro usuario
 Usuario: BESPIN02\boba
 Contraseña: Admin123!
 ```
@@ -1024,8 +1024,8 @@ Contraseña: Admin123!
 
 **Debe mostrar:**
 ```
-Windows cannot access \\bespin02.cloud02.city\trap
-You do not have permission to access...
+Windows no puede acceder a \\bespin02.cloud02.city\trap
+No tienes permiso para acceder...
 ```
 
 ✅ **Correcto - boba NO tiene acceso.**
@@ -1179,10 +1179,10 @@ Debe decir: `Connection to ... 3389 port [tcp/ms-wbt-server] succeeded!`
 **Antes del examen:**
 - [ ] Sé cómo entrar a AWS Academy
 - [ ] Sé descargar labsuser.pem
-- [ ] Sé crear Security Group con todos los puertos
+- [ ] Sé crear grupo de seguridad con todos los puertos
 - [ ] Sé lanzar instancia Ubuntu
 - [ ] Sé lanzar instancia Windows
-- [ ] Sé asignar Elastic IPs
+- [ ] Sé asignar IPs elásticas
 - [ ] Sé obtener contraseña de Windows
 - [ ] Sé conectar por SSH
 - [ ] Sé conectar por RDP con xfreerdp
