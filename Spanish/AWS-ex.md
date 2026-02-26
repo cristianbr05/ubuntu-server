@@ -956,23 +956,8 @@ Domain: cloud02.city
 En Windows (RDP):
 Inicio → Icono usuario → Cerrar sesión
 ```
-
----
-
-### Paso 40: Iniciar sesión como lando
-
-**En la pantalla de inicio de sesión:**
-```
-Clic en "Otro usuario"
-Usuario: BESPIN02\lando
-Contraseña: admin_21
-```
-
-**Primera vez tarda 1-2 minutos (crea perfil).**
-
----
-
-### Paso 41: Acceder al recurso compartido trap
+O tambien está esta opción:
+**Desde Windows (conectado como Administrator):**
 
 **Abrir Explorador de archivos (Windows + E)**
 
@@ -981,38 +966,95 @@ Contraseña: admin_21
 \\bespin02.cloud02.city\trap
 ```
 
-**O usando IP privada:**
+**Aparece ventana de credenciales:**
 ```
-\\10.0.1.229\trap
+Usuario: BESPIN02\lando
+Contraseña: admin_21
 ```
 
-✅ **DEBE ABRIR** la carpeta trap (lando tiene acceso).
+✅ **DEBE ABRIR** la carpeta trap (lando tiene acceso)
+
+Si fuera con las credenciales de "boba" no debería de dejar:
+```
+\\bespin02.cloud02.city\trap
+Usuario: BESPIN02\boba
+Contraseña: admin_21
+```
+
+❌ **NO DEBE ABRIR** la carpeta trap (boba NO tiene acceso)
 
 ---
 
-### Paso 42: Crear directorio con iniciales CB
+### Paso 40: Crear directorio con iniciales CB
 
-**Dentro de la carpeta trap:**
+**Dentro de la carpeta trap que se abrió:**
 ```
-Clic derecho → Nuevo → Carpeta
-Nombre: CB
-Enter
-```
+1. Clic derecho → Nuevo → Carpeta
+   Nombre: CB
+   Enter
 
-**Entrar a la carpeta CB:**
-```
-Doble clic en CB
-```
+2. Doble clic en la carpeta CB para entrar
 
-**Crear archivo de prueba:**
-```
-Clic derecho → Nuevo → Documento de texto
-Nombre: prueba.txt
-Abrir y escribir: "Acceso OK - Lando"
-Guardar y cerrar
+3. Crear archivo de prueba:
+   Clic derecho → Nuevo → Documento de texto
+   Nombre: prueba.txt
+   
+4. Abrir prueba.txt y escribir:
+   "Acceso OK - Lando - Cristian BR"
+   
+5. Guardar (Ctrl+S) y cerrar
 ```
 
 ✅ lando puede crear carpetas y archivos.
+
+---
+
+### Paso 41: Cerrar sesión y probar con boba
+
+**Cerrar la ventana del Explorador de archivos**
+
+**Cerrar sesión del Administrator:**
+```
+Inicio → Icono usuario → Cerrar sesión
+```
+
+**Reconectar por RDP:**
+```bash
+xfreerdp /v:174.129.224.105 /u:Administrator /p:'admin_21' /cert:ignore /dynamic-resolution /clipboard
+```
+
+---
+
+### Paso 42: Intentar acceder a trap como boba
+
+**Abrir Explorador de archivos (Windows + E)**
+
+**Escribir en barra de direcciones:**
+```
+\\bespin02.cloud02.city\trap
+```
+
+**Aparece ventana de credenciales:**
+```
+Nombre de usuario: BESPIN02\boba
+Contraseña: admin_21
+```
+
+**Clic en Aceptar**
+
+❌ **DEBE DENEGAR ACCESO**
+
+**Debe mostrar:**
+```
+Windows no puede acceder a \\bespin02.cloud02.city\trap
+No tienes permiso para acceder...
+```
+
+✅ **Correcto - boba NO tiene acceso.**
+
+---
+
+**💡 Nota:** Si necesitas probar de nuevo con diferentes usuarios, cierra sesión y reconecta por RDP para limpiar las credenciales guardadas.
 
 ---
 
@@ -1314,6 +1356,7 @@ Si sigues esta guía PASO A PASO sin saltarte nada, el ejercicio funcionará cor
 6. ✅ Crear carpeta CB dentro de trap
 
 **¡Mucha suerte en el examen! 🚀**
+
 
 
 
