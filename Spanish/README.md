@@ -121,6 +121,8 @@ network:
         - 192.168.11.2/24
 ```
 
+![Configuración del archivo YAML de Netplan](assets/sprint-1/s1-h1-netplan-yaml.png)
+
 ### 1.3 Actualizar el sistema
 > ⚠️ Obligatorio antes de instalar Samba. Puede tardar varios minutos.
 ```bash
@@ -189,6 +191,8 @@ Durante la instalación de Kerberos introducir:
 ```bash
 sudo apt install -y samba smbclient winbind krb5-user krb5-config
 ```
+
+![Configuración del Default Realm durante la instalación de Kerberos](assets/sprint-1/s1-h3-kerberos-realm.png)
 
 🛠 **Si la instalación falla por dependencias:**
 ```bash
@@ -292,6 +296,8 @@ host -t A ls02.lab02.lan
 host -t SRV _ldap._tcp.lab02.lan
 ```
 
+![Verificación de registros DNS internos de Samba](assets/sprint-1/s1-h5-dns-records.png)
+
 🛠 Si no resuelve:
 ```bash
 sudo reboot now
@@ -307,12 +313,17 @@ sudo samba-tool dns query 127.0.0.1 lab02.lan @ ALL -U Administrator%admin_21
 Añadir en `[global]`: `dns forwarder = 10.239.3.7`
 
 → `nslookup www.amazon.es 127.0.0.1` debe resolver correctamente
+
+![Configuración de interfaces y forwarder en smb.conf](assets/sprint-1/s1-h5-smb-conf.png)
+
 ```bash
 sudo samba-tool dns serverinfo 127.0.0.1 -U Administrator%admin_21
 sudo nano /etc/samba/smb.conf
 sudo systemctl restart samba-ad-dc
 nslookup www.amazon.es 127.0.0.1
 ```
+
+![Resolución DNS externa funcionando a través de Samba](assets/sprint-1/s1-h5-dns-forwarder.png)
 
 ### 5.3 Probar autenticación Kerberos
 → `klist` debe mostrar ticket válido para `Administrator@LAB02.LAN`
@@ -321,6 +332,8 @@ kinit Administrator@LAB02.LAN
 # Contraseña: admin_21
 klist
 ```
+
+![Ticket de autenticación Kerberos generado con éxito](assets/sprint-1/s1-h5-kerberos-ticket.png)
 
 🛠 Si falla "Clock skew too great":
 ```bash
@@ -351,6 +364,9 @@ sudo apt install -y iptables-persistent
 # Durante instalación: guardar IPv4 → Yes, IPv6 → Yes
 sudo iptables -t nat -L -v
 ```
+
+![Confirmación para guardar las reglas IPv4 en iptables-persistent](assets/sprint-1/s1-h6-iptables-install.png)
+![Verificación de la regla MASQUERADE de iptables](assets/sprint-1/s1-h6-iptables-nat.png)
 
 🛠 Si las reglas no persisten tras reinicio:
 ```bash
@@ -388,6 +404,8 @@ sudo samba-tool domain passwordsettings set --reset-account-lockout-after=15
 
 sudo samba-tool domain passwordsettings show
 ```
+
+![Políticas de contraseña y bloqueo configuradas en el dominio](assets/sprint-1/s1-h6-password-policies.png)
 
 ### 6.5 Verificación integral del dominio
 ```bash
@@ -551,6 +569,8 @@ sudo samba-tool user show bob
 sudo ldbsearch -H /var/lib/samba/private/sam.ldb "(sAMAccountName=bob)" dn
 ```
 
+![Verificación mediante ldbsearch de que el usuario Bob pertenece a la OU IT_Department](assets/sprint-2/s2-h3-user-ou.png)
+
 🛠 **Si falla "Constraint violation" (contraseña no cumple política):**
 ```bash
 sudo samba-tool domain passwordsettings set --complexity=off
@@ -595,6 +615,8 @@ sudo samba-tool group listmembers HR
 sudo samba-tool group listmembers "IT Support"
 ```
 
+![Verificación de los usuarios asignados correctamente a los grupos Finance, HR e IT Support](assets/sprint-2/s2-h4-group-members.png)
+
 🛠 **Si necesitas verificar a qué grupos pertenece un usuario o eliminarlo de un grupo:**
 ```bash
 sudo samba-tool user show bob | grep memberOf
@@ -631,6 +653,8 @@ sudo nano /etc/samba/smb.conf
 sudo systemctl restart samba-ad-dc
 sudo testparm -s | grep winbind
 ```
+
+![Comprobación de que Winbind está activado como dominio por defecto en testparm](assets/sprint-2/s2-h5-winbind-test.png)
 
 ### 5.4 Configurar permisos base en Linux
 → `ls -la /srv/samba/` debe mostrar `drwxrwx--- root Domain Users` en cada carpeta
@@ -679,12 +703,17 @@ Añadir al final del archivo (después de `[netlogon]` y `[sysvol]`):
 - `map acl inherit = yes` → Permite heredar permisos estilo Windows.
 - `guest ok = yes` → Solo en Public, permite acceso sin autenticación.
 
+![Configuración de FinanceDocs, HRDocs y Public con soporte de ACLs de Windows](assets/sprint-2/s2-h5-smb-shares.png)
+
 ```bash
 sudo nano /etc/samba/smb.conf
 sudo testparm
 sudo smbcontrol all reload-config
 sudo smbclient -L localhost -U Administrator%admin_21
 ```
+
+![Listado de recursos compartidos activos mostrados por smbclient](assets/sprint-2/s2-h5-smbclient-list.png)
+
 → `testparm` debe decir `Loaded services file OK`  
 → `smbclient -L` debe listar FinanceDocs, HRDocs, Public.
 
@@ -699,6 +728,8 @@ sudo smbclient //localhost/FinanceDocs -U user01%admin_21
 # ls
 # exit
 ```
+
+![Prueba de inicio de sesión exitosa y creación de directorio en FinanceDocs como user01](assets/sprint-2/s2-h5-smbclient-access.png)
 
 **Prueba 2: "alice" a "HRDocs"**
 ```bash
@@ -849,6 +880,8 @@ sudo ls -la /srv/samba/FinanceDocs/
 net use
 ```
 
+![Configuración en Windows para mapear FinanceDocs como unidad de red Z:](assets/sprint-3/s3-h3-map-drive.png)
+
 ---
 
 ## 🕒 HORA 4: Configurar permisos (ACLs) desde Windows
@@ -859,23 +892,42 @@ net use
 1. `\\ls02.lab02.lan\FinanceDocs` → clic derecho → Propiedades → Seguridad → Opciones avanzadas
 2. Deshabilitar herencia → "Reemplazar todas las entradas..."
 3. Eliminar todos excepto: Administradores del dominio, SYSTEM, CREATOR OWNER
+
+![Limpieza de permisos heredados innecesarios en FinanceDocs](assets/sprint-3/s3-h4-acl-finance-cleanup.png)
+
 4. Añadir grupo **Finance** → Control total → Permitir → Esta carpeta, subcarpetas y archivos
+
+![Configuración de Control total para el grupo Finance](assets/sprint-3/s3-h4-acl-finance-allow.png)
+
 5. Añadir grupo **HR** → Control total → **Denegar**
+
+![Estado final correcto de las ACLs para la carpeta FinanceDocs](assets/sprint-3/s3-h4-acl-finance-final.png)
 
 ### 4.3 HRDocs
 Mismo proceso:
 - Añadir **HR** → Control total → Permitir
 - Añadir **Finance** → Control total → Denegar
 
+![Estado final correcto de las ACLs para la carpeta HRDocs (inverso a Finance)](assets/sprint-3/s3-h4-acl-hr-final.png)
+
 ### 4.4 Public
 1. `\\ls02.lab02.lan\Public` → Propiedades → Seguridad → Opciones avanzadas
 2. Deshabilitar herencia (NO marcar "Reemplazar...")
+
+![Deshabilitando la herencia en la carpeta Public](assets/sprint-3/s3-h4-acl-public-cleanup.png)
+
 3. Resultado final:
    - Administrator → Control total
    - Domain Users → Lectura y ejecución
    - CREATOR OWNER → Control total (subcarpetas/archivos)
 
+![Configuración de solo Lectura y ejecución para todos los usuarios del dominio](assets/sprint-3/s3-h4-acl-public-domainusers.png)
+
+![Estado final correcto de las ACLs para la carpeta Public](assets/sprint-3/s3-h4-acl-public-final.png)
+
 > **NOTA:** Si sale un aviso de Windows mediante una ventana que dice algo como:  
+
+![Aviso de auditoría de Windows (se puede ignorar con seguridad)](assets/sprint-3/s3-h4-acl-audit-warning.png)
 
 > *"Seguridad de Windows. La directiva de supervisión actual de este equipo no tiene activada la auditoría. Si este equipo obtiene la directiva de auditoría del dominio..."*
 
@@ -889,6 +941,8 @@ Mismo proceso:
 - ✅ FinanceDocs → debe abrir, crear `test_acl_user01.txt`
 - ❌ HRDocs → debe mostrar "No tiene permiso para acceder"
 - ✅ Public → abre pero no puede crear archivos
+
+![Prueba de seguridad: Windows bloqueando el acceso a HRDocs para un usuario no autorizado](assets/sprint-3/s3-h5-access-denied-hr.png)
 
 ### 5.2 Como alice (grupo HR)
 - ✅ HRDocs → debe abrir, crear `test_acl_alice.txt`
@@ -985,6 +1039,8 @@ sudo samba-tool gpo create "Configuracion_Escritorio" -U Administrator
 sudo samba-tool gpo listall
 ```
 
+![Verificación de las nuevas GPOs vacías creadas en el servidor](assets/sprint-4/s4-h1-gpo-list.png)
+
 ### A.6 Vincular GPOs a OU=Students
 Sustituir `{GUID_...}` por los GUIDs obtenidos en el paso anterior.
 
@@ -994,6 +1050,8 @@ sudo samba-tool gpo setlink "OU=Students,DC=lab02,DC=lan" "{GUID_DE_Restriccione
 sudo samba-tool gpo setlink "OU=Students,DC=lab02,DC=lan" "{GUID_DE_Configuracion_Escritorio}" -U Administrator
 sudo samba-tool gpo getlink "OU=Students,DC=lab02,DC=lan"
 ```
+
+![Confirmación del vínculo de ambas GPOs a la Unidad Organizativa Students](assets/sprint-4/s4-h1-gpo-link.png)
 
 ### A.7 Verificar políticas de contraseñas (ya configuradas en Sprint 1)
 ```bash
@@ -1006,6 +1064,8 @@ ls -la /var/lib/samba/sysvol/lab02.lan/Policies/
 sudo samba-tool gpo listall | grep -E "Restricciones|Configuracion"
 sudo samba-tool gpo getlink "OU=Students,DC=lab02,DC=lan"
 ```
+
+![Verificación de la estructura de directorios de las GPOs dentro de SYSVOL](assets/sprint-4/s4-h1-gpo-sysvol.png)
 
 ---
 
@@ -1145,6 +1205,9 @@ sudo realm join -U Administrator lab02.lan --verbose
 # Contraseña: admin_21
 sudo realm list
 ```
+
+![Cliente Ubuntu unido exitosamente al dominio lab02.lan mediante realmd](assets/sprint-4/s4-h2-realm-join.png)
+
 ```bash
 # Desde servidor Ubuntu
 sudo samba-tool computer list
@@ -1185,12 +1248,18 @@ smbclient -L //ls02.lab02.lan -U bob
 # Contraseña: admin_21
 ```
 
+![Listado de recursos compartidos del dominio visibles desde el cliente Ubuntu](assets/sprint-4/s4-h3-smbclient-list.png)
+
 ### 3.3 – 3.4 Probar acceso y montaje manual
 → `ls -la /mnt/financedocs` debe mostrar contenido
 ```bash
 smbclient //ls02.lab02.lan/FinanceDocs -U user01
 # Dentro del prompt: ls, mkdir test_from_ubuntu, ls, exit
+```
 
+![Acceso interactivo mediante smbclient y creación de directorio de prueba](assets/sprint-4/s4-h3-smbclient-access.png)
+
+```
 sudo mkdir -p /mnt/financedocs
 sudo mount -t cifs //ls02.lab02.lan/FinanceDocs /mnt/financedocs -o username=user01,password=admin_21,uid=1000,gid=1000
 ls -la /mnt/financedocs
@@ -1282,6 +1351,8 @@ kill -9 12345
 ps aux | grep sl
 ```
 
+![Identificación del PID y envío de señales SIGSTOP y SIGCONT para gestionar procesos remotamente](assets/sprint-4/s4-h4-kill-signals.png)
+
 ### 4.8 Monitoreo de procesos
 ```bash
 top
@@ -1345,6 +1416,8 @@ sudo /root/backup_samba.sh
 ls -lh /root/backups/
 cat /var/log/samba_backup.log
 ```
+
+![Prueba de ejecución del script de backup con empaquetado y registro en log exitoso](assets/sprint-4/s4-h5-backup-test.png)
 
 ### 5.4 Programar con CRON
 → `sudo crontab -l` debe mostrar la línea añadida
