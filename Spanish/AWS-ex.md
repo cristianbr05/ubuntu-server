@@ -530,11 +530,11 @@ DNS forwarder IP address (write 'none' to disable forwarding) [127.0.0.53]:
 → Presionar Enter
 
 Administrator password:
-→ Escribir: Admin123!
+→ Escribir: admin_21
 → Presionar Enter (NO SE VE mientras escribes)
 
 Retype password:
-→ Escribir: Admin123! (de nuevo)
+→ Escribir: admin_21 (de nuevo)
 → Presionar Enter
 ```
 
@@ -600,7 +600,7 @@ kinit Administrator
 **Pide contraseña:**
 ```
 Password for Administrator@CLOUD02.CITY:
-→ Escribir: Admin123!
+→ Escribir: admin_21
 → Presionar Enter
 ```
 
@@ -626,10 +626,10 @@ Default principal: Administrator@CLOUD02.CITY
 
 ```bash
 # Crear usuario lando
-sudo samba-tool user create lando Admin123! --given-name="Lando" --surname="Calrissian"
+sudo samba-tool user create lando admin_21 --given-name="Lando" --surname="Calrissian"
 
 # Crear usuario boba
-sudo samba-tool user create boba Admin123! --given-name="Boba" --surname="Fett"
+sudo samba-tool user create boba admin_21 --given-name="Boba" --surname="Fett"
 ```
 
 **Verificar:**
@@ -699,7 +699,7 @@ Debe decir: `Loaded services file OK.`
 ### Paso 29: Verificar recurso compartido
 
 ```bash
-sudo smbclient -L localhost -U Administrator%Admin123!
+sudo smbclient -L localhost -U Administrator%admin_21
 ```
 
 **Debe mostrar:**
@@ -757,7 +757,7 @@ Clic derecho en Inicio → Windows PowerShell (Administrador)
 
 **Cambiar contraseña a algo simple:**
 ```powershell
-net user Administrator Admin123!
+net user Administrator admin_21
 ```
 
 **Configurar teclado español:**
@@ -782,7 +782,7 @@ Inicio → Icono usuario → Cerrar sesión
 ```bash
 xfreerdp /v:54.221.100.222 \
          /u:Administrator \
-         /p:'Admin123!' \
+         /p:'admin_21' \
          /cert:ignore \
          /dynamic-resolution \
          /clipboard
@@ -879,7 +879,7 @@ Add-Computer -DomainName cloud02.city -Credential BESPIN02\Administrator -Restar
 **Pide contraseña:**
 ```
 Password for BESPIN02\Administrator:
-→ Escribir: Admin123!
+→ Escribir: admin_21
 ```
 
 El Windows se reiniciará automáticamente.
@@ -897,7 +897,7 @@ Seleccionar "Domain"
 Escribir: cloud02.city
 OK
 Usuario: Administrator
-Contraseña: Admin123!
+Contraseña: admin_21
 OK → Restart Now
 ```
 
@@ -911,7 +911,7 @@ OK → Restart Now
 
 **Reconectar por RDP:**
 ```bash
-xfreerdp /v:54.221.100.222 /u:Administrator /p:'Admin123!' /cert:ignore /dynamic-resolution /clipboard
+xfreerdp /v:54.221.100.222 /u:Administrator /p:'admin_21' /cert:ignore /dynamic-resolution /clipboard
 ```
 
 **Verificar en PowerShell:**
@@ -945,7 +945,7 @@ Inicio → Icono usuario → Cerrar sesión
 ```
 Clic en "Otro usuario"
 Usuario: BESPIN02\lando
-Contraseña: Admin123!
+Contraseña: admin_21
 ```
 
 **Primera vez tarda 1-2 minutos (crea perfil).**
@@ -1006,7 +1006,7 @@ Inicio → Icono usuario → Cerrar sesión
 ```
 Otro usuario
 Usuario: BESPIN02\boba
-Contraseña: Admin123!
+Contraseña: admin_21
 ```
 
 ---
@@ -1061,7 +1061,7 @@ sudo testparm -s | grep -A 5 "\[trap\]"
 ### En Windows (como lando):
 
 ```
-1. Iniciar sesión: BESPIN02\lando / Admin123!
+1. Iniciar sesión: BESPIN02\lando / admin_21
 2. Acceder a: \\bespin02.cloud02.city\trap → ✅ Abre
 3. Ver carpeta CB → ✅ Existe
 4. Ver archivo prueba.txt → ✅ Existe
@@ -1072,7 +1072,7 @@ sudo testparm -s | grep -A 5 "\[trap\]"
 ### En Windows (como boba):
 
 ```
-1. Iniciar sesión: BESPIN02\boba / Admin123!
+1. Iniciar sesión: BESPIN02\boba / admin_21
 2. Intentar acceder: \\bespin02.cloud02.city\trap → ❌ Denegado
 ```
 
@@ -1086,7 +1086,7 @@ sudo testparm -s | grep -A 5 "\[trap\]"
 | **NetBIOS Name** | BESPIN02 |
 | **DC Hostname** | bespin02.cloud02.city |
 | **IP Privada Ubuntu** | 10.0.X.X (depende de AWS) |
-| **Contraseña Administrator** | Admin123! |
+| **Contraseña Administrator** | admin_21 |
 | **Usuario con acceso** | lando |
 | **Usuario denegado** | boba |
 | **Carpeta compartida** | /city/trap |
@@ -1243,13 +1243,13 @@ sudo samba-tool domain provision --use-rfc2307 --interactive
 # Realm: CLOUD02.CITY
 # Domain: BESPIN02
 # DNS forwarder: 8.8.8.8
-# Password: Admin123!
+# Password: admin_21
 ```
 
 **Crear usuarios:**
 ```bash
-sudo samba-tool user create lando Admin123!
-sudo samba-tool user create boba Admin123!
+sudo samba-tool user create lando admin_21
+sudo samba-tool user create boba admin_21
 ```
 
 **Configurar recurso:**
@@ -1266,7 +1266,7 @@ sudo nano /etc/samba/smb.conf
 
 **RDP desde Linux:**
 ```bash
-xfreerdp /v:ELASTIC_IP /u:Administrator /p:'Admin123!' /cert:ignore /dynamic-resolution
+xfreerdp /v:ELASTIC_IP /u:Administrator /p:'admin_21' /cert:ignore /dynamic-resolution
 ```
 
 **DNS en Windows:**
@@ -1294,3 +1294,4 @@ Si sigues esta guía PASO A PASO sin saltarte nada, el ejercicio funcionará cor
 6. ✅ Crear carpeta CB dentro de trap
 
 **¡Mucha suerte en el examen! 🚀**
+
